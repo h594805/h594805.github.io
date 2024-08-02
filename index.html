@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <link rel="icon" type="image/png" href="KSlogo.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bryllupsinvitasjon</title>
+    <link rel="stylesheet" href="https://example.com/styles.css"> <!-- Example external CSS with HTTPS -->
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #F1EEDC;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            text-align: center;
+        }
+        h1, h2, h3 {
+            color: #B3C8CF;
+        }
+        .header {
+            margin-bottom: 30px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .details {
+            margin-bottom: 30px;
+        }
+        .footer {
+            margin-top: 30px;
+            color: #777;
+        }
+        .rsvp-btn {
+            background-color: #B3C8CF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+        }
+        .rsvp-btn:hover {
+            background-color: #9f5b67;
+        }
+        .image {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        .nav {
+            background-color: #B3C8CF;
+            color: #fff;
+            padding: 10px;
+            width: 100%;
+            text-align: center;
+        }
+        .nav a {
+            color: #fff;
+            margin: 0 10px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .hidden {
+            display: none;
+        }
+        #passwordPrompt {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #passwordPrompt input {
+            padding: 10px;
+            font-size: 16px;
+        }
+        #passwordPrompt button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #B3C8CF;
+            color: #fff;
+            border: none;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="passwordPrompt">
+        <div>
+            <h2 style="color: white;">Skriv inn passord for å få tilgang til bryllupsinvitasjoddddnen</h2>
+            <input type="password" id="passwordInput" placeholder="Skriv inn passord">
+            <button onclick="checkPassword()">Send</button>
+        </div>
+    </div>
+
+    <div class="nav">
+        <a href="#" onclick="showSection('home')">Hjem</a>
+        <a href="#" onclick="showSection('hva')">Hva</a>
+        <a href="#" onclick="showSection('hvor')">Hvor</a>
+        <a href="#" onclick="showSection('nar')">Når</a>
+        <a href="#" onclick="showSection('velkommen')">Velkommen</a>
+        <a href="#" onclick="showSection('overnatting')">Overnatting</a>
+        <a href="#" onclick="showSection('gaver')">Gaver</a>
+        <a href="#" onclick="showSection('otherInfo')">Annen Info</a>
+        <a href="#" onclick="showSection('countdown')">Nedtelling</a>
+    </div>
+
+    <div class="container" id="home">
+        <div class="header">
+            <h1>Du er invitert!</h1>
+            <h2>Bryllupet til</h2>
+            <h1>Kristiane & Simon</h1>
+        </div>
+        <div class="content">
+            <img src="wedding-photo.jpg" alt="Bryllupsfoto" class="image">
+            <p>Vi er glade for å invitere deg til vår bryllupsfeiring. Bli med oss for en dag fylt med kjærlighet, glede og latter når vi knytter bånd.</p>
+        </div>
+        <div class="details">
+            <h3>Bryllupsdetaljer</h3>
+            <p><strong>Dato:</strong> 24. august 2024</p>
+            <p><strong>Tid:</strong> 16:00</p>
+            <p><strong>Sted:</strong> Sunshine Gardens, 1234 Bryllupsvei, Lykkeby</p>
+        </div>
+        <a href="rsvp.html" class="rsvp-btn">SVP Her</a>
+        <div class="footer">
+            <p>Vi ser frem til å feire med deg!</p>
+            <p>For spørsmål, vennligst kontakt oss på <a href="mailto:wedding@example.com">wedding@example.com</a>.</p>
+        </div>
+    </div>
+
+    <div class="container hidden" id="hva">
+        <h2>Hva</h2>
+        <p>Detaljer om hva som skjer på bryllupsdagen.</p>
+    </div>
+
+    <div class="container hidden" id="hvor">
+        <h2>Hvor</h2>
+        <p>Sunshine Gardens, 1234 Bryllupsvei, Lykkeby</p>
+        <p>Her er et kart til stedet:</p>
+        <img src="map-image.jpg" alt="Kart til stedet" class="image">
+    </div>
+
+    <div class="container hidden" id="nar">
+        <h2>Når</h2>
+        <p>Bryllupet finner sted den 24. august 2024 kl. 16:00.</p>
+    </div>
+
+    <div class="container hidden" id="velkommen">
+        <h2>Velkommen</h2>
+        <p>Velkommen til vår bryllupsfeiring! Vi gleder oss til å feire denne spesielle dagen med deg.</p>
+    </div>
+
+    <div class="container hidden" id="overnatting">
+        <h2>Overnatting</h2>
+        <p>Informasjon om overnattingsmuligheter i nærheten av bryllupsstedet.</p>
+    </div>
+
+    <div class="container hidden" id="gaver">
+        <h2>Gaver</h2>
+        <p>Informasjon om gaveønsker og hvor du kan sende gaver.</p>
+    </div>
+
+    <div class="container hidden" id="otherInfo">
+        <h2>Annen Informasjon</h2>
+        <p>Her kan du legge til annen relevant informasjon som overnattingsdetaljer, kleskode osv.</p>
+    </div>
+
+    <div class="container hidden" id="countdown">
+        <h2>Nedtelling</h2>
+        <p>Det er <span id="countdownTimer"></span> til bryllupsdagen!</p>
+    </div>
+
+    <script src="https://example.com/script.js"></script> <!-- Example external JS with HTTPS -->
+    <script>
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === 'YourPassword') { // Endre 'YourPassword' til ønsket passord
+                document.getElementById('passwordPrompt').style.display = 'none';
+            } else {
+                alert('Feil passord. Vennligst prøv igjen.');
+            }
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.container').forEach(container => {
+                container.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        function updateCountdown() {
+            const countdownDate = new Date('May 5, 2025 00:00:00').getTime();
+            const now = new Date().getTime();
+            const distance = countdownDate - now;
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('countdownTimer').innerHTML = `${days} dager \n, ${hours} timer, ${minutes} minutter, ${seconds} sekunder`;
+
+            if (distance < 0) {
+                clearInterval(countdownInterval);
+                document.getElementById('countdownTimer').innerHTML = 'Bryllupsdagen er her!';
+            }
+        }
+
+        const countdownInterval = setInterval(updateCountdown, 1000);
+
+        window.onload = () => {
+            document.getElementById('passwordPrompt').style.display = 'flex';
+            document.querySelectorAll('.container').forEach(container => {
+                container.classList.add('hidden');
+            });
+            document.getElementById('home').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
