@@ -23,11 +23,11 @@
     </style>
     <script>
         function checkPassword() {
-            var password = prompt("Please enter the password:");
+            var password = prompt("Vennligst skriv inn passordet:");
             if (password === "ks25") {
                 document.body.style.visibility = "visible"; // Show the content
             } else {
-                alert("Incorrect password!");
+                alert("Feil passord!");
                 window.location.href = "about:blank"; // Redirect to a blank page
             }
         }
