@@ -10,14 +10,26 @@
             padding: 0;
             width: 100%;
             height: 100%;
+            display: none; 
         }
         img {
             width: 100%;
             height: auto;
         }
     </style>
+    <script>
+        function checkPassword() {
+            var password = prompt("Please enter the password:");
+            if (password === "ks25") {
+                document.body.style.display = "block"; 
+            } else {
+                alert("Incorrect password!");
+                window.location.href = "about:blank"; 
+            }
+        }
+    </script>
 </head>
-<body>
+<body onload="checkPassword()">
     <img src="capybara.jpg" alt="Full Width Image">
 </body>
 </html>
