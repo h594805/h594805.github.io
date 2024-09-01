@@ -1,0 +1,278 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    line-height: 1.6;
+    color: #000000; /* Black text for readability on white background */
+    background-color: #ffffff; /* White background for the entire site */
+}
+
+header {
+    background: #ffffff; /* White background */
+    color: #000000; /* Black text */
+    padding: 10px 0;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid #ffffff; /* Add a black border for separation */
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.logo img {
+    max-width: 150px;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+}
+
+nav ul li {
+    margin: 0 15px;
+}
+
+nav ul li a {
+    color: #000000; /* Black text */
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s;
+}
+
+nav ul li a:hover {
+    color: #007bff; /* Blue color for hover effect */
+}
+
+#home {
+    background: url('hero.jpg') no-repeat center center/cover;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #000000; /* Black text */
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 1.5rem;
+    margin-bottom: 40px;
+}
+
+.cta-btn {
+    background: #007bff; /* Blue color */
+    color: #ffffff; /* White text for button */
+    padding: 10px 20px;
+    text-decoration: none;
+    font-size: 1.2rem;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.cta-btn:hover {
+    background: #0056b3; /* Darker blue for hover effect */
+}
+
+section {
+    padding: 60px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+#services {
+    background: #ffffff; /* Light gray background for contrast */
+    text-align: center;
+}
+
+#services h2 {
+    margin-bottom: 40px;
+    font-size: 2.5rem;
+    color: #000000; /* Black text */
+}
+
+.service-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.service-box {
+    background: #ffffff; /* White background for service boxes */
+    padding: 20px;
+    margin: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    flex: 1 1 30%;
+    text-align: center;
+    border: 1px solid #000; /* Black border for definition */
+}
+
+.service-box h3 {
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    color: #000000; /* Black text */
+}
+
+.service-box p {
+    font-size: 1rem;
+    color: #333333; /* Dark gray text */
+}
+
+#portfolio {
+    text-align: center;
+}
+
+#portfolio h2 {
+    margin-bottom: 40px;
+    font-size: 2.5rem;
+    color: #000000; /* Black text */
+}
+
+.portfolio-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.portfolio-item {
+    margin: 15px;
+    width: calc(33.333% - 30px);
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid #000; /* Black border for definition */
+}
+
+.portfolio-item img {
+    width: 100%;
+    height: auto;
+    transition: transform 0.3s;
+}
+
+.portfolio-item img:hover {
+    transform: scale(1.1);
+}
+
+#testimonials {
+    background: #ffffff; /* Light gray background for contrast */
+    text-align: center;
+}
+
+#testimonials h2 {
+    margin-bottom: 40px;
+    font-size: 2.5rem;
+    color: #000000; /* Black text */
+}
+
+.testimonial-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.testimonial-box {
+    background: #ffffff; /* White background for testimonial boxes */
+    padding: 20px;
+    margin: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    flex: 1 1 30%;
+    text-align: center;
+    border: 1px solid #000; /* Black border for definition */
+}
+
+.testimonial-box p {
+    font-size: 1rem;
+    font-style: italic;
+    color: #333333; /* Dark gray text */
+    margin-bottom: 15px;
+}
+
+.testimonial-box h4 {
+    font-size: 1.2rem;
+    color: #000000; /* Black text */
+}
+
+#contact {
+    text-align: center;
+}
+
+#contact h2 {
+    margin-bottom: 40px;
+    font-size: 2.5rem;
+    color: #000000; /* Black text */
+}
+
+form {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #000000; /* Black text */
+}
+
+form input, form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #000; /* Black border for form elements */
+    background: #ffffff; /* White background for form elements */
+    color: #000000; /* Black text */
+    font-size: 1rem;
+}
+
+form button {
+    display: inline-block;
+    background: #000000; /* Black button background */
+    color: #ffffff; /* White text */
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+form button:hover {
+    background: #555555; /* Slightly lighter button background on hover */
+}
+
+footer {
+    background: #ffffff; /* White background */
+    color: #000000; /* Black text */
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+    border-top: 1px solid #000; /* Black border for separation */
+}
+
+footer p {
+    margin: 0;
+}
+
+.centered-image {
+    display: flex;
+    justify-content: center;
+}
+
