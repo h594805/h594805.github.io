@@ -3,37 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K&S</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            visibility: hidden; /* Initially hide the content */
-        }
-        img {
-            width: auto;
-            height: 100%;
-        }
-    </style>
-    <script>
-        function checkPassword() {
-            var password = prompt("Vennligst skriv inn passordet:");
-            if (password === "ks25") {
-                document.body.style.visibility = "visible"; // Show the content
-            } else {
-                alert("Feil passord!");
-                window.location.reload();
-            }
-        }
-    </script>
+    <title>Kristiane & Simon</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="images/icon.png" type="image/png">
 </head>
-<body onload="checkPassword()">
-    <img src="6.png" alt="Full Width Image">
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+            </div>
+            <ul>
+                <li><a href="#home">Forside</a></li>
+                <li><a href="#services">Sted og overnatting</a></li>
+                <li><a href="#portfolio">Transport</a></li>
+                <li><a href="#testimonials">Program</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="home">
+        <div class="centered-image" style="margin-top: 150px;">
+            <img src="inv.png" width="auto" height="800">
+        </div>
+    </section>
+    
+
+
+    <section id="services">
+        <img src="stedogovernatting.png" width="100%">
+    </section>
+
+    <section id="portfolio">
+        <img src="transport.png" width="100%">
+    </section>
+
+    <section id="testimonials">
+        <img src="program.png" width="100%">
+    </section>
+
+    <section id="contact">
+        
+    </section>
+
+    <script src="script.js"></script>
 </body>
 </html>
