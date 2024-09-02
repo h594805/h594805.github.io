@@ -1,50 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kristiane & Simon</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="images/icon.png" type="image/png">
+    <title> Kristiane & Simon 2025 </title>
+    <link rel="icon" href="oter.png" type="image/png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            color: black;
+        }
+
+        html {
+            scroll-behavior: smooth; /* Activates smooth scrolling */
+        }
+
+        nav {
+            position: fixed;
+            width: 100%;
+            background-color: white;
+            border-bottom: 1px solid #ffffff;
+            padding: 10px 0;
+            text-align: center;
+            z-index: 1000;
+            top: 0; /* Ensures the nav stays at the top */
+        }
+
+        nav a img {
+            margin: 0 10px;
+            height: 80px; /* Adjust button size as needed */
+            vertical-align: middle;
+        }
+
+        nav a:hover img {
+            opacity: 0.7; /* Reduces opacity for hover effect */
+            filter: brightness(0.9); /* Adds a slight darkening effect */
+        }
+
+        .section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            min-height: 100vh;
+            text-align: center;
+            background-size: cover; /* Ensures background images cover the section */
+        }
+
+        /* Additional padding for the first section to avoid overlap with the fixed nav */
+        #forside {
+            /* Adjust this value based on your nav height */
+            background-image: url('inv4.png');
+        }
+
+        #velkommen {
+            background-image: url('velkommen.png');
+        }
+
+        #sted-og-overnatting {
+            background-image: url('overnatting.png');
+        }
+
+        #sted-og-overnatting2 {
+            background-image: url('overnatting2.png');
+        }
+
+        #transport {
+            background-image: url('transport.png');
+        }
+
+        #program {
+            background-image: url('program.png');
+        }
+
+        #pamelding {
+            background-image: url('paamelding1.png');
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="logo">
-            </div>
-            <ul>
-                <li><a href="#home">Forside</a></li>
-                <li><a href="#services">Sted og overnatting</a></li>
-                <li><a href="#portfolio">Transport</a></li>
-                <li><a href="#testimonials">Program</a></li>
-            </ul>
-        </nav>
-    </header>
 
-    <section id="home">
-        <div class="centered-image">
-            <img src="inv3.png" width="100%">
-        </div>
-    </section>
+    <nav>
+        <a href="#forside"><img src="forsideknapp.png" alt="Forside"></a>
+        <a href="#sted-og-overnatting"><img src="stedogovernattingnknapp.png" alt="Sted og Overnatting"></a>
+        <a href="#transport"><img src="transportknapp.png" alt="Transport"></a>
+        <a href="#program"><img src="programknapp.png" alt="Program"></a>
+        <a href="#pamelding"><img src="paameldingknapp.png" alt="Påmelding"></a>
+    </nav>
+
+    <div id="forside" class="section"></div>
+    <div id="velkommen" class="section"></div>
+    <div id="sted-og-overnatting" class="section"></div>
+    <div id="sted-og-overnatting2" class="section"></div>
+    <div id="transport" class="section"></div>
+    <div id="pamelding" class="section"></div>
+    <div id="program" class="section"></div>
     
 
-
-    <section id="services">
-        <img src="stedogovernatting.png" height="100%">
-    </section>
-
-    <section id="portfolio">
-        <img src="transport.png" height="100%">
-    </section>
-
-    <section id="testimonials">
-        <img src="program.png" height="100%">
-    </section>
-
-    <section id="contact">
-        
-    </section>
-
-    <script src="script.js"></script>
 </body>
 </html>
