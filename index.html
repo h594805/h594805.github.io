@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Kristiane & Simon 2025 </title>
+    <title>Kristiane & Simon 2025</title>
     <link rel="icon" href="oter.png" type="image/png">
     <style>
         body {
@@ -15,7 +15,7 @@
         }
 
         html {
-            scroll-behavior: smooth; /* Activates smooth scrolling */
+            scroll-behavior: smooth;
         }
 
         nav {
@@ -26,18 +26,39 @@
             padding: 10px 0;
             text-align: center;
             z-index: 1000;
-            top: 0; /* Ensures the nav stays at the top */
+            top: 0;
         }
 
         nav a img {
             margin: 0 10px;
-            height: 80px; /* Adjust button size as needed */
+            height: 80px;
             vertical-align: middle;
         }
 
         nav a:hover img {
-            opacity: 0.7; /* Reduces opacity for hover effect */
-            filter: brightness(0.9); /* Adds a slight darkening effect */
+            opacity: 0.7;
+            filter: brightness(0.9);
+        }
+
+        /* Hamburger menu style */
+        .menu-icon {
+            display: none;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            margin: 0 10px;
+        }
+
+        .menu-icon div {
+            width: 100%;
+            height: 4px;
+            background-color: black;
+            margin: 6px 0;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
         }
 
         .section {
@@ -47,12 +68,10 @@
             padding: 0;
             min-height: 100vh;
             text-align: center;
-            background-size: cover; /* Ensures background images cover the section */
+            background-size: cover;
         }
 
-        /* Additional padding for the first section to avoid overlap with the fixed nav */
         #forside {
-            /* Adjust this value based on your nav height */
             background-image: url('inv4.png');
         }
 
@@ -79,16 +98,59 @@
         #pamelding {
             background-image: url('paamelding1.png');
         }
+
+        /* Media Queries for Mobile Devices */
+        @media (max-width: 768px) {
+            nav {
+                padding: 10px;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                text-align: center;
+                background-color: white;
+                position: absolute;
+                top: 60px; /* Adjust according to your nav bar height */
+                left: 0;
+                border-top: 1px solid #ddd;
+                z-index: 999;
+            }
+
+            .nav-links a {
+                padding: 10px;
+                border-bottom: 1px solid #ddd;
+            }
+
+            .menu-icon {
+                display: block;
+                position: fixed;
+                top: 10px;
+                right: 10px;
+            }
+
+            .nav-active .nav-links {
+                display: flex;
+            }
+        }
     </style>
 </head>
 <body>
 
     <nav>
-        <a href="#forside"><img src="forsideknapp.png" alt="Forside"></a>
-        <a href="#sted-og-overnatting"><img src="stedogovernattingnknapp.png" alt="Sted og Overnatting"></a>
-        <a href="#transport"><img src="transportknapp.png" alt="Transport"></a>
-        <a href="#program"><img src="programknapp.png" alt="Program"></a>
-        <a href="#pamelding"><img src="paameldingknapp.png" alt="Påmelding"></a>
+        <div class="menu-icon" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <div class="nav-links">
+            <a href="#forside"><img src="forsideknapp.png" alt="Forside"></a>
+            <a href="#sted-og-overnatting"><img src="stedogovernattingnknapp.png" alt="Sted og Overnatting"></a>
+            <a href="#transport"><img src="transportknapp.png" alt="Transport"></a>
+            <a href="#program"><img src="programknapp.png" alt="Program"></a>
+            <a href="#pamelding"><img src="paameldingknapp.png" alt="Påmelding"></a>
+        </div>
     </nav>
 
     <div id="forside" class="section"></div>
@@ -98,7 +160,12 @@
     <div id="transport" class="section"></div>
     <div id="pamelding" class="section"></div>
     <div id="program" class="section"></div>
-    
+
+    <script>
+        function toggleMenu() {
+            document.querySelector('nav').classList.toggle('nav-active');
+        }
+    </script>
 
 </body>
 </html>
