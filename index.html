@@ -64,44 +64,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh; /* Ensure each section takes full viewport height */
+            padding: 0;
+            min-height: 100vh;
             text-align: center;
-            padding-top: 60px; /* Adds spacing to prevent overlap with fixed nav */
-            background-size: cover;
-            background-position: center;
+            background-color: white; /* Set background color to white */
         }
 
         .section img {
-            max-width: 100%; /* Image will not exceed the screen width */
+            max-width: 80%; /* Images will fit 80% of the screen width */
             height: auto;
-        }
-
-        #forside {
-            background-image: url('inv4.png');
-        }
-
-        #velkommen {
-            background-image: url('velkommen.png');
-        }
-
-        #sted-og-overnatting {
-            background-image: url('overnatting.png');
-        }
-
-        #sted-og-overnatting2 {
-            background-image: url('overnatting2.png');
-        }
-
-        #transport {
-            background-image: url('transport.png');
-        }
-
-        #program {
-            background-image: url('program.png');
-        }
-
-        #pamelding {
-            background-image: url('paamelding1.png');
+            margin: auto;
         }
 
         @media (max-width: 768px) {
@@ -116,7 +88,7 @@
                 text-align: center;
                 background-color: white;
                 position: absolute;
-                top: 60px;
+                top: 60px; /* Adjust according to your nav bar height */
                 left: 0;
                 border-top: 1px solid #ddd;
                 z-index: 999;
@@ -136,10 +108,6 @@
 
             .nav-active .nav-links {
                 display: flex;
-            }
-
-            .section {
-                padding-top: 80px; /* Adjust based on mobile view if needed */
             }
         }
     </style>
