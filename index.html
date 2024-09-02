@@ -40,7 +40,6 @@
             filter: brightness(0.9);
         }
 
-        /* Hamburger menu style */
         .menu-icon {
             display: none;
             cursor: pointer;
@@ -65,10 +64,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0;
-            min-height: 100vh;
+            min-height: 100vh; /* Ensure each section takes full viewport height */
             text-align: center;
+            padding-top: 60px; /* Adds spacing to prevent overlap with fixed nav */
             background-size: cover;
+            background-position: center;
+        }
+
+        .section img {
+            max-width: 100%; /* Image will not exceed the screen width */
+            height: auto;
         }
 
         #forside {
@@ -99,7 +104,6 @@
             background-image: url('paamelding1.png');
         }
 
-        /* Media Queries for Mobile Devices */
         @media (max-width: 768px) {
             nav {
                 padding: 10px;
@@ -112,7 +116,7 @@
                 text-align: center;
                 background-color: white;
                 position: absolute;
-                top: 60px; /* Adjust according to your nav bar height */
+                top: 60px;
                 left: 0;
                 border-top: 1px solid #ddd;
                 z-index: 999;
@@ -132,6 +136,10 @@
 
             .nav-active .nav-links {
                 display: flex;
+            }
+
+            .section {
+                padding-top: 80px; /* Adjust based on mobile view if needed */
             }
         }
     </style>
@@ -153,13 +161,27 @@
         </div>
     </nav>
 
-    <div id="forside" class="section"></div>
-    <div id="velkommen" class="section"></div>
-    <div id="sted-og-overnatting" class="section"></div>
-    <div id="sted-og-overnatting2" class="section"></div>
-    <div id="transport" class="section"></div>
-    <div id="pamelding" class="section"></div>
-    <div id="program" class="section"></div>
+    <div id="forside" class="section">
+        <img src="inv4.png" alt="Forside">
+    </div>
+    <div id="velkommen" class="section">
+        <img src="velkommen.png" alt="Velkommen">
+    </div>
+    <div id="sted-og-overnatting" class="section">
+        <img src="overnatting.png" alt="Sted og Overnatting">
+    </div>
+    <div id="sted-og-overnatting2" class="section">
+        <img src="overnatting2.png" alt="Sted og Overnatting 2">
+    </div>
+    <div id="transport" class="section">
+        <img src="transport.png" alt="Transport">
+    </div>
+    <div id="pamelding" class="section">
+        <img src="paamelding1.png" alt="Påmelding">
+    </div>
+    <div id="program" class="section">
+        <img src="program.png" alt="Program">
+    </div>
 
     <script>
         function toggleMenu() {
