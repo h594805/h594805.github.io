@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kristiane & Simon 2025</title>
-    <link rel="icon" href="oter.png" type="image/png">
+    <link rel="icon" href="/bilder/oter.png" type="image/png">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,19 +24,34 @@
             width: 100%;
             background-color: white;
             border-bottom: 1px solid #ffffff;
-            padding: 10px 0;
-            text-align: center;
+            padding: 0;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             z-index: 1000;
             top: 0;
+            box-sizing: border-box;
         }
 
-        nav a img {
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .nav-links a {
             margin: 0 10px;
+        }
+
+        .nav-links img {
             height: 80px;
+            width: auto;
             vertical-align: middle;
         }
 
-        nav a:hover img {
+        .nav-links a:hover img {
             opacity: 0.7;
             filter: brightness(0.9);
         }
@@ -56,49 +71,51 @@
             margin: 6px 0;
         }
 
-        .nav-links {
-            display: flex;
-            justify-content: center;
-        }
-
         .section {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px 0; /* Added padding to reduce the gap between sections */
             min-height: 100vh;
             text-align: center;
             background-color: white;
-        }
-
-        .section img {
-            max-width: 80%;
-            height: auto;
-            margin: 0 auto;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 15px 30px;
-            margin-top: -180px; /* Adjusted for better positioning */
-            font-size: 18px;
-            color: white;
-            background-color: rgb(55, 55, 55);
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             position: relative;
         }
 
-        .button:hover {
-            background-color: #333;
+        .section img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Container for button */
+        .button-container {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Button style */
+        .button img {
+            height: 180px; /* Juster høyden på knappen */
+            width: auto;
+            vertical-align: middle;
+            transition: opacity 0.3s ease, filter 0.3s ease;
+        }
+
+        .button img:hover {
+            opacity: 0.7;
+            filter: brightness(0.9);
         }
 
         @media (max-width: 768px) {
             nav {
                 padding: 10px;
+                height: auto;
             }
 
             .nav-links {
@@ -108,7 +125,7 @@
                 text-align: center;
                 background-color: white;
                 position: absolute;
-                top: 60px;
+                top: 110px;
                 left: 0;
                 border-top: 1px solid #ddd;
                 z-index: 999;
@@ -130,16 +147,15 @@
                 display: flex;
             }
 
-            .button {
-                margin-top: -120px; /* Adjusted for mobile */
-            }
-
             .section img {
-                max-width: 90%; /* Adjust image width for mobile */
+                width: 100vw;
+                max-width: none;
+                position: relative;
+                left: 0;
             }
 
-            .section {
-                padding: 50px 0; /* Adjust padding to reduce gaps */
+            .button img {
+                height: 40px; /* Juster høyden på mobil */
             }
         }
     </style>
@@ -154,41 +170,59 @@
             <div></div>
         </div>
         <div class="nav-links">
-            <a href="#forside"><img src="forsideknapp.png" alt="Forside"></a>
-            <a href="#sted-og-overnatting"><img src="stedogovernattingnknapp.png" alt="Sted og Overnatting"></a>
-            <a href="#transport"><img src="transportknapp.png" alt="Transport"></a>
-            <a href="#program"><img src="programknapp.png" alt="Program"></a>
-            <a href="#pamelding"><img src="paameldingknapp.png" alt="Påmelding"></a>
+            <a href="#forside"><img src="/bilder/NAVforside.png" alt="Forside"></a>
+            <a href="#velkommen"><img src="/bilder/NAVvelkommen.png" alt="Velkommen"></a>
+            <a href="#overnatting"><img src="/bilder/NAVovernatting.png" alt="Overnatting"></a>
+            <a href="#transport"><img src="/bilder/NAVtransport.png" alt="Transport"></a>
+            <a href="#pamelding"><img src="/bilder/NAVpaamelding.png" alt="Påmelding"></a>
+            <a href="#program"><img src="/bilder/NAVprogram.png" alt="Program"></a>
         </div>
     </nav>
 
     <div id="forside" class="section">
-        <img src="inv4.png" alt="Forside">
+        <img src="/bilder/SECforside.png" alt="Forside">
     </div>
     <div id="velkommen" class="section">
-        <img src="velkommen.png" alt="Velkommen">
+        <img src="/bilder/SECvelkommen.png" alt="Velkommen">
     </div>
-    <div id="sted-og-overnatting" class="section">
-        <img src="overnatting.png" alt="Sted og Overnatting">
-    </div>
-    <div id="sted-og-overnatting2" class="section">
-        <img src="overnatting2.png" alt="Sted og Overnatting 2">
+    <div id="overnatting" class="section">
+        <img src="/bilder/SECovernatting1.png" alt="Overnatting 1">
+        <img src="/bilder/SECovernatting2.png" alt="Overnatting 2">
     </div>
     <div id="transport" class="section">
-        <img src="transport.png" alt="Transport">
+        <img src="/bilder/SECtransport.png" alt="Transport">
     </div>
     <div id="pamelding" class="section">
-        <img src="paamelding1.png" alt="Påmelding">
-        <a href="https://forms.office.com/r/MaWzQLLx0b" class="button" target="_blank">Trykk her for påmelding</a>
+        <img src="/bilder/SECpaamelding.png" alt="Påmelding">
+        <div class="button-container">
+            <a href="https://forms.office.com/r/MaWzQLLx0b" class="button" target="_blank">
+                <img src="/bilder/BTNpaamelding.png" alt="Påmeldingsknapp">
+            </a>
+        </div>
     </div>
     <div id="program" class="section">
-        <img src="program.png" alt="Program">
+        <img src="/bilder/SECprogram.png" alt="Program">
     </div>
 
     <script>
         function toggleMenu() {
             document.querySelector('nav').classList.toggle('nav-active');
         }
+
+        document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                window.scrollTo({
+                    top: target.offsetTop - document.querySelector('nav').offsetHeight,
+                    behavior: 'smooth'
+                });
+
+                if (window.innerWidth <= 768) {
+                    toggleMenu();
+                }
+            });
+        });
     </script>
 
 </body>
