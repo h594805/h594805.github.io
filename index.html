@@ -83,7 +83,7 @@
             padding: 0;
             box-sizing: border-box;
             position: relative;
-            overflow: hidden; /* Sikrer at bildet ikke strekker seg utenfor seksjonen */
+            overflow: hidden;
         }
 
         .section img {
@@ -124,18 +124,19 @@
                 flex-direction: column;
                 width: 100%;
                 text-align: center;
-                background-color: white; /* Hvit bakgrunn */
+                background-color: white;
                 position: absolute;
-                top: 110px;
+                top: 90px; /* Justert toppposisjon for menyen */
                 left: 0;
                 border-top: 1px solid #ddd;
                 z-index: 999;
+                opacity: 1; /* Sikrer at bakgrunnen er ugjennomsiktig */
             }
 
             .nav-links a {
                 padding: 10px;
                 border-bottom: 1px solid #ddd;
-                display: block; /* Sikrer at alle lenker vises */
+                display: block;
             }
 
             .menu-icon {
@@ -149,10 +150,14 @@
                 display: flex;
             }
 
+            .section {
+                padding: 0; /* Fjern padding for å redusere mellomrom mellom seksjonene */
+            }
+
             .section img {
-                width: 167%; /* Øker bildebredden til 167% for å vise kun midten (100% / 0.6 ≈ 167%) */
+                width: 167%; /* Øker bildebredden til 167% for å vise kun midten */
                 max-width: none;
-                transform: translateX(0%); /* Flytter bildet 33% til venstre slik at de midterste 60% er synlige */
+                transform: translateX(0%); /* Flytter bildet til venstre slik at de midterste 60% er synlige */
             }
 
             .button img {
