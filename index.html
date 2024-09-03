@@ -83,6 +83,7 @@
             padding: 0;
             box-sizing: border-box;
             position: relative;
+            overflow: hidden; /* Sikrer at bildet ikke strekker seg utenfor seksjonen */
         }
 
         .section img {
@@ -123,7 +124,7 @@
                 flex-direction: column;
                 width: 100%;
                 text-align: center;
-                background-color: white;
+                background-color: white; /* Hvit bakgrunn */
                 position: absolute;
                 top: 110px;
                 left: 0;
@@ -134,6 +135,7 @@
             .nav-links a {
                 padding: 10px;
                 border-bottom: 1px solid #ddd;
+                display: block; /* Sikrer at alle lenker vises */
             }
 
             .menu-icon {
@@ -148,10 +150,9 @@
             }
 
             .section img {
-                width: 100vw;
+                width: 167%; /* Øker bildebredden til 167% for å vise kun midten (100% / 0.6 ≈ 167%) */
                 max-width: none;
-                position: relative;
-                left: 0;
+                transform: translateX(-33%); /* Flytter bildet 33% til venstre slik at de midterste 60% er synlige */
             }
 
             .button img {
