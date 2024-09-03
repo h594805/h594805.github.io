@@ -87,7 +87,7 @@
         }
 
         .section img {
-            max-width: 100%;
+            max-width: 80%;
             height: auto;
             display: block;
         }
@@ -102,7 +102,8 @@
 
         /* Button style */
         .button img {
-            height: 60px; /* Juster høyden på knappen */
+            height: 60px;
+            /* Juster høyden på knappen */
             width: auto;
             vertical-align: middle;
             transition: opacity 0.3s ease, filter 0.3s ease;
@@ -117,6 +118,7 @@
             nav {
                 padding: 10px;
                 height: auto;
+                background-color: white;
             }
 
             .nav-links {
@@ -125,18 +127,28 @@
                 width: 100%;
                 text-align: center;
                 background-color: white;
-                position: absolute;
-                top: 90px; /* Justert toppposisjon for menyen */
+                /* Sørger for at bakgrunnen er hvit */
+                position: fixed;
+                /* Gjør menyen fastplassert */
+                top: 0;
                 left: 0;
-                border-top: 1px solid #ddd;
+                height: 100%;
+                /* Gjør at menyen dekker hele skjermen */
+                border-top: none;
+                /* Fjerner toppkantlinjen */
                 z-index: 999;
-                opacity: 1; /* Sikrer at bakgrunnen er ugjennomsiktig */
+                opacity: 1;
+                justify-content: center;
+                /* Sentraliserer menyvalgene vertikalt */
             }
 
             .nav-links a {
-                padding: 10px;
+                padding: 20px;
+                /* Øker padding for enklere trykking */
                 border-bottom: 1px solid #ddd;
                 display: block;
+                font-size: 18px;
+                /* Juster fontstørrelse */
             }
 
             .menu-icon {
@@ -144,6 +156,8 @@
                 position: fixed;
                 top: 10px;
                 right: 10px;
+                z-index: 1000;
+                /* Sørger for at ikonet er over menyen */
             }
 
             .nav-active .nav-links {
@@ -151,17 +165,17 @@
             }
 
             .section {
-                padding: 0; /* Fjern padding for å redusere mellomrom mellom seksjonene */
+                padding: 0;
             }
 
             .section img {
-                width: 200%; /* Øker bildebredden til 167% for å vise kun midten */
+                width: 200%;
                 max-width: none;
-                transform: translateX(0%); /* Flytter bildet til venstre slik at de midterste 60% er synlige */
+                transform: translateX(0%);
             }
 
             .button img {
-                height: 40px; /* Juster høyden på mobil */
+                height: 40px;
             }
         }
     </style>
