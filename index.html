@@ -99,16 +99,22 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: red;
+            padding: 10px;
+            box-sizing: border-box;
         }
 
         /* Button style */
         .button img {
-            height: 150px;
-            /* Juster høyden på knappen */
-            width: auto;
+            height: auto;
+            width: 100%;
+            max-width: 200px;
             vertical-align: middle;
             transition: opacity 0.3s ease, filter 0.3s ease;
-            border: 2px solid rgb(0, 0, 0); /* Adds a grey outline around the image */
+            border: 2px solid rgb(0, 0, 0); /* Adds a black outline around the image */
         }
 
         .button img:hover {
@@ -116,6 +122,7 @@
             filter: brightness(0.9);
         }
 
+        /* Mobile-specific styles */
         @media (max-width: 768px) {
             nav {
                 padding: 10px;
@@ -129,28 +136,20 @@
                 width: 100%;
                 text-align: center;
                 background-color: white;
-                /* Sørger for at bakgrunnen er hvit */
                 position: fixed;
-                /* Gjør menyen fastplassert */
                 top: 0;
                 left: 0;
                 height: 100%;
-                /* Gjør at menyen dekker hele skjermen */
-                border-top: none;
-                /* Fjerner toppkantlinjen */
                 z-index: 999;
                 opacity: 1;
                 justify-content: center;
-                /* Sentraliserer menyvalgene vertikalt */
             }
 
             .nav-links a {
                 padding: 20px;
-                /* Øker padding for enklere trykking */
                 border-bottom: 1px solid #ddd;
                 display: block;
                 font-size: 18px;
-                /* Juster fontstørrelse */
             }
 
             .menu-icon {
@@ -159,7 +158,6 @@
                 top: 10px;
                 right: 10px;
                 z-index: 1000;
-                /* Sørger for at ikonet er over menyen */
             }
 
             .nav-active .nav-links {
@@ -177,23 +175,19 @@
             }
 
             .button img {
-                height: 50px;
-                
+                width: 70%; /* Reduce the width of the button image on mobile */
+                max-width: none; /* Allow the image to scale down naturally */
             }
 
             .nav-links img {
                 height: 55px;
             }
-
         }
 
         /* Nytt tillegg for program-seksjonen */
         #program {
             justify-content: flex-end;
-            /* Plasserer bildet nederst */
         }
-
-        
     </style>
 </head>
 
