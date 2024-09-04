@@ -14,10 +14,66 @@
             background-color: white;
             color: black;
             padding-top: 90px;
+            overflow: hidden;
+            /* Prevent scrolling when password screen is visible */
         }
 
         html {
             scroll-behavior: smooth;
+        }
+
+        .password-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            /* Ensure it covers the entire screen */
+        }
+
+        .password-screen img {
+            width: 100%;
+            max-width: 600px;
+            /* Adjust the max-width as needed */
+            margin-bottom: 20px;
+        }
+
+        .password-screen input {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .password-screen button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .password-screen button img {
+            width: 100%;
+            /* Make the button image responsive */
+            max-width: 600px;
+            /* Set the max-width to match passord.png */
+            height: auto;
+            /* Maintain aspect ratio */
+        }
+
+        .password-screen button img:hover {
+            opacity: 0.7;
+            filter: brightness(0.9);
         }
 
         nav {
@@ -224,6 +280,16 @@
 
 <body>
 
+    <!-- Password Screen -->
+    <div class="password-screen" id="passwordScreen">
+        <img src="passord.png" alt="Password Screen">
+        <input type="password" id="passwordInput" placeholder="">
+        <button onclick="checkPassword()">
+            <img src="gaavidere.png" alt="Submit Button">
+        </button>
+    </div>
+
+    <!-- Main Content -->
     <nav>
         <div class="menu-icon" onclick="toggleMenu()">
             <div></div>
@@ -267,6 +333,18 @@
     </div>
 
     <script>
+        function checkPassword() {
+            const passwordInput = document.getElementById('passwordInput').value;
+            const allowedPasswords = ["hei", "heit", "mobile"];
+            if (allowedPasswords.includes(passwordInput)) {
+                document.getElementById('passwordScreen').style.display = 'none';
+                document.body.style.overflow = 'auto'; // Allow scrolling again
+            } else {
+                alert('Ugyldig passord. Vennligst prøv igjen.');
+                document.getElementById('passwordInput').value = ''; // Clear input
+            }
+        }
+
         function toggleMenu() {
             document.querySelector('nav').classList.toggle('nav-active');
         }
