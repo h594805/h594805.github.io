@@ -14,8 +14,7 @@
             background-color: white;
             color: black;
             padding-top: 90px;
-            overflow: hidden;
-            /* Prevent scrolling when password screen is visible */
+            overflow: hidden; /* Prevent scrolling when password screen is visible */
         }
 
         html {
@@ -33,14 +32,20 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            /* Ensure it covers the entire screen */
+            z-index: 9999; /* Ensure it covers the entire screen */
+            transition: opacity 1s ease, visibility 1s ease; /* Added for fade transition effect */
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .password-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
         }
 
         .password-screen img {
             width: 100%;
-            max-width: 600px;
-            /* Adjust the max-width as needed */
+            max-width: 600px; /* Adjust the max-width as needed */
             margin-bottom: 20px;
         }
 
@@ -63,12 +68,9 @@
         }
 
         .password-screen button img {
-            width: 100%;
-            /* Make the button image responsive */
-            max-width: 600px;
-            /* Set the max-width to match passord.png */
-            height: auto;
-            /* Maintain aspect ratio */
+            width: 100%; /* Make the button image responsive */
+            max-width: 600px; /* Set the max-width to match passord.png */
+            height: auto; /* Maintain aspect ratio */
         }
 
         .password-screen button img:hover {
@@ -170,8 +172,7 @@
             max-width: 200px;
             vertical-align: middle;
             transition: opacity 0.3s ease, filter 0.3s ease;
-            border: 2px solid rgb(0, 0, 0);
-            /* Adds a black outline around the image */
+            border: 2px solid rgb(0, 0, 0); /* Adds a black outline around the image */
         }
 
         .button img:hover {
@@ -232,10 +233,8 @@
             }
 
             .button img {
-                width: 70%;
-                /* Reduce the width of the button image on mobile */
-                max-width: none;
-                /* Allow the image to scale down naturally */
+                width: 70%; /* Reduce the width of the button image on mobile */
+                max-width: none; /* Allow the image to scale down naturally */
             }
 
             .button-container {
@@ -246,24 +245,18 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background-color: transparent;
-                /* Ensure no extra background color */
-                padding: 0;
-                /* Remove padding */
+                background-color: transparent; /* Ensure no extra background color */
+                padding: 0; /* Remove padding */
                 box-sizing: border-box;
             }
 
             .button img {
                 height: auto;
-                width: 60%;
-                /* Adjust width on mobile */
-                max-width: none;
-                /* Allow natural scaling */
+                width: 60%; /* Adjust width on mobile */
+                max-width: none; /* Allow natural scaling */
                 display: block;
-                margin: 0 auto;
-                /* Center align */
-                border: 2px solid rgb(0, 0, 0);
-                /* Keep the black border */
+                margin: 0 auto; /* Center align */
+                border: 2px solid rgb(0, 0, 0); /* Keep the black border */
             }
 
             .nav-links img {
@@ -335,15 +328,25 @@
     <script>
         function checkPassword() {
             const passwordInput = document.getElementById('passwordInput').value;
-            const allowedPasswords = ["hei", "heit", "mobile"];
+            const allowedPasswords = ["ks25", "pizzasnus", "køllebart", "timmyturner", "cowboyhatt", "hjortevest", "slintrefitte"];
             if (allowedPasswords.includes(passwordInput)) {
-                document.getElementById('passwordScreen').style.display = 'none';
-                document.body.style.overflow = 'auto'; // Allow scrolling again
+                document.getElementById('passwordScreen').classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('passwordScreen').style.display = 'none';
+                    document.body.style.overflow = 'auto'; // Allow scrolling again
+                }, 1000); // Match the transition duration
             } else {
                 alert('Ugyldig passord. Vennligst prøv igjen.');
                 document.getElementById('passwordInput').value = ''; // Clear input
             }
         }
+
+        document.getElementById('passwordInput').addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent default action of Enter key
+                checkPassword();
+            }
+        });
 
         function toggleMenu() {
             document.querySelector('nav').classList.toggle('nav-active');
