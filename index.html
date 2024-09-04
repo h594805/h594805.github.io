@@ -102,7 +102,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: red;
+            background-color: rgb(255, 255, 255);
             padding: 10px;
             box-sizing: border-box;
         }
@@ -114,7 +114,8 @@
             max-width: 200px;
             vertical-align: middle;
             transition: opacity 0.3s ease, filter 0.3s ease;
-            border: 2px solid rgb(0, 0, 0); /* Adds a black outline around the image */
+            border: 2px solid rgb(0, 0, 0);
+            /* Adds a black outline around the image */
         }
 
         .button img:hover {
@@ -175,8 +176,38 @@
             }
 
             .button img {
-                width: 70%; /* Reduce the width of the button image on mobile */
-                max-width: none; /* Allow the image to scale down naturally */
+                width: 70%;
+                /* Reduce the width of the button image on mobile */
+                max-width: none;
+                /* Allow the image to scale down naturally */
+            }
+
+            .button-container {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: transparent;
+                /* Ensure no extra background color */
+                padding: 0;
+                /* Remove padding */
+                box-sizing: border-box;
+            }
+
+            .button img {
+                height: auto;
+                width: 60%;
+                /* Adjust width on mobile */
+                max-width: none;
+                /* Allow natural scaling */
+                display: block;
+                margin: 0 auto;
+                /* Center align */
+                border: 2px solid rgb(0, 0, 0);
+                /* Keep the black border */
             }
 
             .nav-links img {
