@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="no">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kristiane & Simon 2025</title>
+    <link rel="icon" href="oter.png" type="image/png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            color: black;
+            padding-top: 90px;
+            overflow: hidden; /* Prevent scrolling when password screen is visible */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .password-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Ensure it covers the entire screen */
+            transition: opacity 1s ease, visibility 1s ease; /* Added for fade transition effect */
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .password-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .password-screen img {
+            width: 100%;
+            max-width: 600px; /* Adjust the max-width as needed */
+            margin-bottom: 20px;
+        }
+
+        .password-screen input {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .password-screen button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .password-screen button img {
+            width: 100%; /* Make the button image responsive */
+            max-width: 600px; /* Set the max-width to match passord.png */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        .password-screen button img:hover {
+            opacity: 0.7;
+            filter: brightness(0.9);
+        }
+
+        nav {
+            position: fixed;
+            width: 100%;
+            background-color: white;
+            border-bottom: 1px solid #ffffff;
+            padding: 0;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            top: 0;
+            box-sizing: border-box;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .nav-links a {
+            margin: 0 10px;
+        }
+
+        .nav-links img {
+            height: 80px;
+            width: auto;
+            vertical-align: middle;
+        }
+
+        .nav-links a:hover img {
+            opacity: 0.7;
+            filter: brightness(0.9);
+        }
+
+        .menu-icon {
+            display: none;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            margin: 0 10px;
+        }
+
+        .menu-icon div {
+            width: 100%;
+            height: 4px;
+            background-color: black;
+            margin: 6px 0;
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+            text-align: center;
+            background-color: rgb(255, 255, 255);
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section img {
+            max-width: 80%;
+            height: auto;
+            display: block;
+        }
+
+        /* Container for button */
+        .button-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgb(255, 255, 255);
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        /* Button style */
+        .button img {
+            height: auto;
+            width: 100%;
+            max-width: 200px;
+            vertical-align: middle;
+            transition: opacity 0.3s ease, filter 0.3s ease;
+            border: 2px solid rgb(0, 0, 0); /* Adds a black outline around the image */
+        }
+
+        .button img:hover {
+            opacity: 0.7;
+            filter: brightness(0.9);
+        }
+
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            nav {
+                padding: 10px;
+                height: auto;
+                background-color: white;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                text-align: center;
+                background-color: white;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                z-index: 999;
+                opacity: 1;
+                justify-content: center;
+            }
+
+            .nav-links a {
+                padding: 20px;
+                border-bottom: 1px solid #ddd;
+                display: block;
+                font-size: 18px;
+            }
+
+            .menu-icon {
+                display: block;
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                z-index: 1000;
+            }
+
+            .nav-active .nav-links {
+                display: flex;
+            }
+
+            .section {
+                padding: 0;
+            }
+
+            .section img {
+                width: 200%;
+                max-width: none;
+                transform: translateX(0%);
+            }
+
+            .button img {
+                width: 70%; /* Reduce the width of the button image on mobile */
+                max-width: none; /* Allow the image to scale down naturally */
+            }
+
+            .button-container {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: transparent; /* Ensure no extra background color */
+                padding: 0; /* Remove padding */
+                box-sizing: border-box;
+            }
+
+            .button img {
+                height: auto;
+                width: 60%; /* Adjust width on mobile */
+                max-width: none; /* Allow natural scaling */
+                display: block;
+                margin: 0 auto; /* Center align */
+                border: 2px solid rgb(0, 0, 0); /* Keep the black border */
+            }
+
+            .nav-links img {
+                height: 55px;
+            }
+        }
+
+        /* Nytt tillegg for program-seksjonen */
+        #program {
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Password Screen -->
+    <div class="password-screen" id="passwordScreen">
+        <img src="passord.png" alt="Password Screen">
+        <input type="password" id="passwordInput" placeholder="">
+        <button onclick="checkPassword()">
+            <img src="gaavidere.png" alt="Submit Button">
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <nav>
+        <div class="menu-icon" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <div class="nav-links">
+            <a href="#forside"><img src="NAVforside.png" alt="Forside"></a>
+            <a href="#velkommen"><img src="NAVvelkommen.png" alt="Velkommen"></a>
+            <a href="#program"><img src="NAVprogram.png" alt="Program"></a>
+            <a href="#toastmastere"><img src="NAVtoastmastere.png" alt="Toastmastere"></a>
+            <a href="#transport"><img src="NAVtransport.png" alt="Transport"></a>
+            <a href="#onskeliste"><img src="NAVonskeliste.png" alt="Ønskeliste"></a>
+            
+        </div>
+    </nav>
+
+    <div id="forside" class="section">
+        <img src="SEKforside.png" alt="Forside">
+    </div>
+    <div id="velkommen" class="section">
+        <img src="SEKvelkommen.png" alt="Velkommen">
+    </div>
+    <div id="program" class="section">
+        <img src="SEKprogramny.png" alt="Program 1">
+        <img src="SEKprogramny2.png" alt="Program 2">
+    </div>
+    <div id="toastmastere" class="section">
+        <img src="SEKtoastmastere.png" alt="Toastmastere">
+    </div>
+    
+    <div id="transport" class="section">
+        <img src="SEKtransportny.png" alt="Transport">
+    </div>
+    <div id="onskeliste" class="section">
+        <img src="SEKonskeliste.png" alt="Ønskeliste">
+    </div>
+
+    <script>
+        function checkPassword() {
+            const passwordInput = document.getElementById('passwordInput').value;
+            const allowedPasswords = ["ks25", "pizzasnus", "køllebart", "timmyturner", "cowboyhatt", "hjortevest", "slintrefitte"];
+            if (allowedPasswords.includes(passwordInput)) {
+                document.getElementById('passwordScreen').classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('passwordScreen').style.display = 'none';
+                    document.body.style.overflow = 'auto'; // Allow scrolling again
+                }, 1000); // Match the transition duration
+            } else {
+                alert('Ugyldig passord. Vennligst prøv igjen.');
+                document.getElementById('passwordInput').value = ''; // Clear input
+            }
+        }
+
+        document.getElementById('passwordInput').addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent default action of Enter key
+                checkPassword();
+            }
+        });
+
+        function toggleMenu() {
+            document.querySelector('nav').classList.toggle('nav-active');
+        }
+
+        document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                window.scrollTo({
+                    top: target.offsetTop - document.querySelector('nav').offsetHeight,
+                    behavior: 'smooth'
+                });
+
+                if (window.innerWidth <= 768) {
+                    toggleMenu();
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>
