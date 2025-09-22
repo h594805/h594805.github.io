@@ -1,1 +1,218 @@
-<h1>Yo</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Anja & Oliver 2026</title>
+  <link rel="icon" href="/salmon.png">
+  <style>
+    /* Reset + layout */
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000; /* looks better if the image has transparent edges */
+    }
+    .stage {
+      position: relative;
+      width: 100%;
+      overflow: hidden; /* keep effects clipped to the image area */
+      user-select: none;
+    }
+    /* Your image: 100% width, auto height */
+    .hero {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    /* Canvas overlay for effects */
+    .fx {
+      position: absolute;
+      inset: 0;
+      pointer-events: none; /* clicks go through */
+    }
+    /* Tiny UI toggle (optional) */
+    .ui {
+      position: fixed;
+      left: 12px;
+      bottom: 12px;
+      background: rgba(0,0,0,.6);
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font: 14px/1 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    .ui input { vertical-align: middle; }
+    .ui label { margin-left: 4px; }
+  </style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <img class="hero" id="hero" src="test.png" alt="Background" />
+    <canvas class="fx" id="fx"></canvas>
+  </div>
+
+  <div class="ui">
+    <input type="checkbox" id="toggleStars" checked />
+    <label for="toggleStars">Stars on</label>
+  </div>
+
+  <script>
+    (function () {
+      const img = document.getElementById('hero');
+      const canvas = document.getElementById('fx');
+      const ctx = canvas.getContext('2d', { alpha: true });
+      const toggle = document.getElementById('toggleStars');
+
+      let W = 0, H = 0, dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      let stars = [];
+      let shooting = [];
+      let running = true;
+      let rafId = null;
+
+      function sizeCanvasToImage() {
+        // Match canvas to the image’s displayed size
+        const rect = img.getBoundingClientRect();
+        W = Math.max(1, Math.floor(rect.width));
+        H = Math.max(1, Math.floor(rect.height));
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        canvas.width = Math.floor(W * dpr);
+        canvas.height = Math.floor(H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function createStars() {
+        // Density: ~1 star per 1200 px² of area (tweak if you want more/less)
+        const target = Math.floor((W * H) / 1200);
+        stars = [];
+        for (let i = 0; i < target; i++) {
+          stars.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            r: Math.random() * 1.4 + 0.2,    // radius
+            vx: (Math.random() * 0.2 + 0.02), // slow drift to the right
+            vy: (Math.random() * 0.05 - 0.025), // tiny vertical drift
+            a: Math.random() * 0.7 + 0.3,    // alpha
+            tw: Math.random() * 0.02 + 0.005 // twinkle speed
+          });
+        }
+      }
+
+      function spawnShootingStar() {
+        // Randomly spawn from left/top with diagonal motion
+        const fromTop = Math.random() < 0.5;
+        const startX = fromTop ? Math.random() * W * 0.6 : -50;
+        const startY = fromTop ? -20 : Math.random() * H * 0.4;
+        shooting.push({
+          x: startX,
+          y: startY,
+          vx: 6 + Math.random() * 4,
+          vy: 2 + Math.random() * 2,
+          life: 0,
+          maxLife: 50 + Math.random() * 30
+        });
+      }
+
+      function step() {
+        if (!running) return;
+        ctx.clearRect(0, 0, W, H);
+
+        if (toggle.checked) {
+          // Stars
+          ctx.save();
+          ctx.fillStyle = '#fff';
+          for (const s of stars) {
+            s.x += s.vx;
+            s.y += s.vy;
+            s.a += s.tw * (Math.random() < 0.5 ? -1 : 1);
+            if (s.a < 0.2) s.a = 0.2;
+            if (s.a > 1.0) s.a = 1.0;
+
+            // wrap
+            if (s.x > W + 2) s.x = -2;
+            if (s.y < -2) s.y = H + 2;
+            if (s.y > H + 2) s.y = -2;
+
+            ctx.globalAlpha = s.a;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+
+          // Shooting stars (rare)
+          if (Math.random() < 0.01 && shooting.length < 3) {
+            spawnShootingStar();
+          }
+
+          // Draw shooting stars
+          for (let i = shooting.length - 1; i >= 0; i--) {
+            const sh = shooting[i];
+            sh.x += sh.vx;
+            sh.y += sh.vy;
+            sh.life++;
+
+            // trail
+            const trail = 12;
+            ctx.save();
+            for (let t = 0; t < trail; t++) {
+              const p = t / trail;
+              ctx.globalAlpha = (1 - p) * 0.6;
+              ctx.beginPath();
+              ctx.arc(sh.x - sh.vx * t * 0.6, sh.y - sh.vy * t * 0.6, 1.2 + (1 - p) * 1.2, 0, Math.PI * 2);
+              ctx.fillStyle = '#ffffff';
+              ctx.fill();
+            }
+            ctx.restore();
+
+            if (sh.life > sh.maxLife || sh.x > W + 50 || sh.y > H + 50) {
+              shooting.splice(i, 1);
+            }
+          }
+        }
+
+        rafId = requestAnimationFrame(step);
+      }
+
+      function rebuild() {
+        sizeCanvasToImage();
+        createStars();
+      }
+
+      // Rebuild when the image loads (first time) and on resize (debounced)
+      let resizeT;
+      function onResize() {
+        clearTimeout(resizeT);
+        resizeT = setTimeout(() => {
+          rebuild();
+        }, 100);
+      }
+
+      img.addEventListener('load', () => {
+        rebuild();
+        running = true;
+        cancelAnimationFrame(rafId);
+        step();
+      }, { once: true });
+
+      // If the image may already be cached/loaded:
+      if (img.complete) {
+        rebuild();
+        running = true;
+        step();
+      }
+
+      window.addEventListener('resize', onResize);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          running = false;
+          cancelAnimationFrame(rafId);
+        } else {
+          running = true;
+          step();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
