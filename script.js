@@ -1,6 +1,6 @@
 // ===== Password Gate =====
 (function(){
-  const PASSWORD = "brosne";
+  const PASSWORD = "brosme";
   const gate = document.getElementById("gate");
   const form = document.getElementById("gateForm");
   const input = document.getElementById("gateInput");
@@ -132,3 +132,4 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   update();
   setInterval(update, 1000);
 })();
+
