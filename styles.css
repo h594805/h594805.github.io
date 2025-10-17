@@ -224,3 +224,34 @@ html, body{
 @media (prefers-reduced-motion: reduce){
   * { scroll-behavior: auto !important; }
 }
+
+/* === Desktop: hero-bilde 2/3 bredde, midtstilt; tekst under === */
+@media (min-width: 1024px){
+  /* Sørg for at elementene ligger under hverandre, ikke i grid */
+  .hero{
+    display: block !important;
+    text-align: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Bildet: 2/3 av viewport-bredden, midtstilt, samme (eller litt høyere) høyde */
+  .hero-image{
+    display: block;
+    width: 66.6667vw;                 /* 2/3 av skjermen */
+    max-width: 1400px;                /* valgfri sikkerhetsgrense */
+    height: clamp(320px, 60vh, 720px);/* samme høyde som før */
+    /* vil du ha det litt høyere? bytt til f.eks.: clamp(360px, 68vh, 820px) */
+    object-fit: cover;
+    object-position: center;
+    margin: 0 auto;                   /* midtstill */
+  }
+
+  /* Teksten under bildet, med samme bredde og midtstilt */
+  .hero-text.container{
+    max-width: 66.6667vw;
+    margin: 16px auto 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
