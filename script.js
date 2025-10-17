@@ -1,33 +1,3 @@
-// ===== Password Gate =====
-(function(){
-  const PASSWORD = "brosme";
-  const gate = document.getElementById("gate");
-  const form = document.getElementById("gateForm");
-  const input = document.getElementById("gateInput");
-  const error = document.getElementById("gateError");
-
-  if (sessionStorage.getItem("wedding_unlocked") === "yes") {
-    gate.style.display = "none";
-  }
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    if ((input.value || "").trim().toLowerCase() === PASSWORD) {
-      sessionStorage.setItem("wedding_unlocked", "yes");
-      error.textContent = "\u00A0";
-      error.classList.remove("show");
-
-      gate.animate([{opacity:1},{opacity:0}], {duration:250, fill:"forwards"});
-      setTimeout(() => { gate.style.display = "none"; }, 260);
-    } else {
-      error.textContent = "Feil passord. Prøv igjen.";
-      error.classList.add("show");
-      input.value = "";
-      input.focus();
-    }
-  });
-})();
-
 // ===== Mobile Nav Toggle (hamburger on right) =====
 (function(){
   const header = document.querySelector(".site-header");
