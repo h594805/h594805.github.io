@@ -132,4 +132,3 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   update();
   setInterval(update, 1000);
 })();
-
