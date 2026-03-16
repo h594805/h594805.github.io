@@ -27,98 +27,159 @@ html, body{
 
 /* Header / Nav */
 .site-header{
-  position: sticky; top: 0; z-index: 80;
+  position: sticky;
+  top: 0;
+  z-index: 80;
   background: rgba(255,255,255,0.96);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid #eee;
   height: var(--header-h);
 }
+
 .nav-bar{
-  max-width: 1100px; margin: 0 auto; padding: 0 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
   height: 100%;
-  display: flex; align-items: center; justify-content: center; position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
+
 .nav{
-  display: flex; gap: clamp(16px, 3vw, 36px); /* more space so neighbors don't 'nudge' */
-  align-items: center; flex-wrap: wrap;
+  display: flex;
+  gap: clamp(16px, 3vw, 36px);
+  align-items: center;
+  flex-wrap: wrap;
 }
+
 /* Avoid hover shift: keep bold at all times; use opacity for emphasis */
 .nav-link{
   font-weight: 700;
   opacity: 0.7;
   font-size: clamp(16px, 3.6vw, 18px);
-  text-decoration: none; color: var(--ink);
-  padding: 10px 6px; /* taller tap area on desktop too */
+  text-decoration: none;
+  color: var(--ink);
+  padding: 10px 6px;
   border-radius: 6px;
   transition: transform .15s ease, opacity .15s ease;
   line-height: 1;
 }
-.nav-link:hover{ opacity: 1; transform: translateY(-1px); }
+
+.nav-link:hover{
+  opacity: 1;
+  transform: translateY(-1px);
+}
 
 /* Hamburger toggle (right on mobile) */
 .nav-toggle{
-  position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
   display: none;
-  width: 44px; height: 44px;       /* larger tap target */
-  background: transparent; border: 0; padding: 0; margin: 0;
-  cursor: pointer; z-index: 101;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  z-index: 101;
 }
+
 .nav-toggle .hamburger,
 .nav-toggle .hamburger::before,
 .nav-toggle .hamburger::after{
-  content: ""; display: block; height: 2px; background: var(--ink);
-  width: 24px; margin: 6px auto;
+  content: "";
+  display: block;
+  height: 2px;
+  background: var(--ink);
+  width: 24px;
+  margin: 6px auto;
   transition: transform .2s ease, opacity .2s ease;
 }
 
 /* Mobile nav overlay */
 @media (max-width: 768px){
   .nav-toggle{ display: inline-block; }
+
   .nav{
-    position: fixed; left: 0; right: 0; top: var(--header-h);
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--header-h);
     z-index: 100;
     background: #fff;
     border-bottom: 1px solid #eee;
-    display: none; flex-direction: column; gap: 6px;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
     padding: 12px 16px 16px;
-    align-items: center; justify-content: center;
+    align-items: center;
+    justify-content: center;
   }
+
   .nav-link{
-    padding: 14px 6px;            /* taller items on mobile */
+    padding: 14px 6px;
     font-size: 18px;
-    width: 100%; text-align: center;
+    width: 100%;
+    text-align: center;
     opacity: 0.85;
   }
+
   .site-header.nav-open .nav{ display: flex; }
 }
 
 /* Sections */
-.section{ padding: clamp(24px, 5vw, 52px) 16px; }
+.section{
+  padding: clamp(24px, 5vw, 52px) 16px;
+}
+
 .section.alt{
   background: var(--soft);
   border-top: 1px solid #f0f0f0;
   border-bottom: 1px solid #f0f0f0;
 }
+
 .container{
-  max-width: 920px; margin: 0 auto;
+  max-width: 920px;
+  margin: 0 auto;
   text-align: center;
 }
+
 .section-title{
   font-size: clamp(28px, 6vw, 44px);
-  line-height: 1.15; margin: 0 0 12px;
+  line-height: 1.15;
+  margin: 0 0 12px;
+}
+
+.subtitle{
+  font-size: clamp(22px, 4vw, 30px);
+  line-height: 1.2;
+  margin: 28px 0 12px;
+  font-weight: 700;
 }
 
 /* Hero */
-.hero{ position: relative; padding: 0; }
-.hero-image{
-  display: block; width: 100%;
-  height: clamp(320px, 60vh, 720px);
-  object-fit: cover; object-position: center;
+.hero{
+  position: relative;
+  padding: 0;
 }
+
+.hero-image{
+  display: block;
+  width: 100%;
+  height: clamp(320px, 60vh, 720px);
+  object-fit: cover;
+  object-position: center;
+}
+
 .hero-text{
-  /* slightly less bottom padding to pull countdown closer */
   padding: clamp(18px, 4vw, 24px) 16px clamp(12px, 3vw, 20px);
 }
+
 .lead{
   font-size: clamp(16px, 2.8vw, 20px);
   margin: 0 0 8px;
@@ -129,13 +190,25 @@ html, body{
 
 /* Countdown – closer to hero text */
 .countdown-wrap{ text-align: center; }
-.countdown-wrap.tight-top{ padding-top: clamp(8px, 2.5vw, 16px); }
+
+.countdown-wrap.tight-top{
+  padding-top: clamp(8px, 2.5vw, 16px);
+}
+
 .countdown{
-  display: flex; flex-wrap: wrap;
-  justify-content: center; align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
   gap: clamp(18px, 4vw, 28px);
 }
-.cd-unit{ display: grid; gap: 6px; justify-items: center; }
+
+.cd-unit{
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
 .cd-value{
   font-weight: 700;
   font-size: clamp(28px, 7vw, 54px);
@@ -143,56 +216,119 @@ html, body{
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
-#cd-hours, #cd-mins, #cd-secs{ min-width: 2ch; text-align: center; }
-.cd-label{ font-size: clamp(12px, 2.6vw, 14px); color: #4b5563; }
-.countdown-status{ margin-top: 6px; }
+
+#cd-hours,
+#cd-mins,
+#cd-secs{
+  min-width: 2ch;
+  text-align: center;
+}
+
+.cd-label{
+  font-size: clamp(12px, 2.6vw, 14px);
+  color: #4b5563;
+}
+
+.countdown-status{
+  margin-top: 6px;
+}
 
 /* Map */
-.map-wrap{ margin-top: 12px; display: grid; gap: 10px; justify-items: center; }
-.map-embed{ width: 100%; height: min(60vh, 420px); border: 0; }
+.map-wrap{
+  width: 100%;
+  margin-top: 30px;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.map-embed{
+  width: 100%;
+  height: 400px;
+  border: 0;
+  border-radius: 8px;
+}
 
 /* Body text */
-.body-text{ font-size: clamp(16px, 2.6vw, 18px); margin: 0 0 16px; }
+.body-text{
+  font-size: clamp(16px, 2.6vw, 18px);
+  margin: 0 0 16px;
+}
+
 .body-text.tight{ margin-top: 4px; }
-.space-top{ margin-top: 10px; }   /* extra gap for Fredag second line */
+.space-top{ margin-top: 10px; }
 
 /* Toastmaster contact list with centered ":" */
 .contact-list{
-  display: grid; gap: 12px; justify-items: center; margin-top: 8px;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  margin-top: 8px;
 }
+
 .contact-row{
   display: grid;
-  grid-template-columns: max-content 1ch max-content; /* narrow colon column */
+  grid-template-columns: max-content 1ch max-content;
   gap: 10px;
-  align-items: center;              /* vertically center all three cells */
+  align-items: center;
 }
-.contact-row .sep{ justify-self: center; }
 
-/* RSVP spacing – more space between header, button, and deadline */
-.rsvp-wrap{ display: grid; gap: 28px; justify-items: center; }
+.contact-row .sep{
+  justify-self: center;
+}
+
+/* RSVP spacing */
+.rsvp-wrap{
+  display: grid;
+  gap: 28px;
+  justify-items: center;
+}
+
 .rsvp-btn{ margin-top: 0; }
 .rsvp-deadline{ margin-top: 0; }
 
 /* Buttons (shared) */
 .btn-light{
   display: inline-block;
-  background: #fff; color: #000;
+  background: #fff;
+  color: #000;
   border: 1px solid var(--muted);
   border-radius: 0;
   padding: 10px 16px;
   font-family: inherit;
   font-weight: 400;
-  text-decoration: none; cursor: pointer; font-size: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Program image */
+.program-image{
+  display: block;
+  width: 100%;
+  max-width: 920px;
+  height: auto;
+  margin: 20px auto 28px;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Bryllupet section should be fully white */
+#bryllupet{
+  background: #ffffff;
+  border-top: none;
+  border-bottom: none;
 }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce){
-  * { scroll-behavior: auto !important; }
+  *{
+    scroll-behavior: auto !important;
+  }
 }
 
-/* === Desktop: hero-bilde 2/3 bredde, midtstilt; tekst under === */
+/* Desktop: hero-bilde 2/3 bredde, midtstilt; tekst under */
 @media (min-width: 1024px){
-  /* Sørg for at elementene ligger under hverandre, ikke i grid */
   .hero{
     display: block !important;
     text-align: center;
@@ -200,47 +336,28 @@ html, body{
     padding-right: 0;
   }
 
-  /* Bildet: 2/3 av viewport-bredden, midtstilt, samme (eller litt høyere) høyde */
   .hero-image{
     display: block;
-    width: 66.6667vw;                 /* 2/3 av skjermen */
-    max-width: 1400px;                /* valgfri sikkerhetsgrense */
-    height: clamp(320px, 60vh, 720px);/* samme høyde som før */
-    /* vil du ha det litt høyere? bytt til f.eks.: clamp(360px, 68vh, 820px) */
+    width: 66.6667vw;
+    max-width: 1400px;
+    height: clamp(320px, 60vh, 720px);
     object-fit: cover;
     object-position: center;
-    margin: 0 auto;                   /* midtstill */
+    margin: 0 auto;
   }
 
-  /* Teksten under bildet, med samme bredde og midtstilt */
   .hero-text.container{
     max-width: 66.6667vw;
     margin: 16px auto 0;
     padding-left: 0;
     padding-right: 0;
   }
-}
 
-.map-wrap {
-  width: 100%;
-  margin-top: 30px;
-}
-
-.map-embed {
-  width: 100%;
-  height: 400px;
-  border: 0;
-  border-radius: 8px;
-}
-
-.program-image{
-  width: 100%;
-  max-width: 900px;
-  height: auto;
-  margin: 20px auto;
-  display: block;
-}
-
-#bryllupet{
-  background: #ffffff;
+  .program-image{
+    width: min(100%, 920px);
+    max-width: 920px;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
