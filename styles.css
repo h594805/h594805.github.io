@@ -327,8 +327,8 @@ html, body{
   }
 }
 
-/* Desktop: hero-bilde 2/3 bredde, midtstilt; tekst under */
 @media (min-width: 1024px){
+
   .hero{
     display: block !important;
     text-align: center;
@@ -353,11 +353,15 @@ html, body{
     padding-right: 0;
   }
 
+  /* PROGRAM BILDE */
   .program-image{
-    width: min(100%, 920px);
-    max-width: 920px;
+    max-height: 80vh;
+    width: auto;
+    max-width: 100%;
     height: auto;
+    display: block;
     margin-left: auto;
     margin-right: auto;
   }
+
 }
