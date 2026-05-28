@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VM 2026 – Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .admin-stage-tab, .admin-group-tab {
+      padding: 8px 14px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    .admin-stage-tab.active, .admin-group-tab.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #000;
+    }
+    .admin-tab {
+      padding: 12px 20px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: var(--surface-2);
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .admin-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .match-admin-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .match-admin-row.played { border-left: 3px solid var(--gold); }
+    .admin-team { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 120px; }
+    .admin-team.away { justify-content: flex-end; }
+    .admin-score-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .admin-meta { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+    #admin-toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #22c55e; color: #fff; padding: 12px 24px; border-radius: 8px;
+      font-weight: 700; font-family: 'Barlow Condensed', sans-serif; font-size: 1rem;
+      z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ENTRY: Admin password -->
+<div id="admin-entry" class="full-screen">
+  <div style="text-align:center;margin-bottom:24px">
+    <h1 class="gold" style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;letter-spacing:2px">ADMIN</h1>
+    <p class="muted">VM 2026 Tipping</p>
+  </div>
+  <div class="auth-box">
+    <div class="card">
+      <div id="admin-entry-error" class="alert alert-error hidden"></div>
+      <form id="admin-entry-form">
+        <div class="form-group">
+          <label>Admin-passord</label>
+          <input type="password" id="admin-password" class="form-input" placeholder="Passord..." autofocus required>
+        </div>
+        <button type="submit" id="admin-entry-btn" class="btn btn-gold btn-full">Logg inn</button>
+      </form>
+      <div style="text-align:center;margin-top:16px">
+        <a href="index.html" class="btn btn-ghost btn-sm">← Tilbake</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel" class="hidden">
+  <header class="app-header">
+    <div class="header-logo" style="font-family:'Barlow Condensed',sans-serif;font-weight:900;letter-spacing:1.5px">ADMIN – VM 2026</div>
+    <a href="index.html" class="btn btn-ghost btn-sm">← Nettsted</a>
+  </header>
+
+  <div class="container" style="padding-top:24px;padding-bottom:40px">
+
+    <!-- Main tabs -->
+    <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:24px">
+      <button class="admin-tab active" data-section="kamper">Kamper</button>
+      <button class="admin-tab" data-section="priser">Priser</button>
+      <button class="admin-tab" data-section="brukere">Brukere</button>
+    </div>
+
+    <!-- === KAMPER === -->
+    <div id="admin-kamper" class="admin-section">
+
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="admin-stage-tab active" data-stage="group">Gruppe</button>
+        <button class="admin-stage-tab" data-stage="r32">R32</button>
+        <button class="admin-stage-tab" data-stage="r16">R16</button>
+        <button class="admin-stage-tab" data-stage="qf">Kvartfinale</button>
+        <button class="admin-stage-tab" data-stage="sf">Semifinale</button>
+        <button class="admin-stage-tab" data-stage="3rd">Bronsefinale</button>
+        <button class="admin-stage-tab" data-stage="final">Finale</button>
+      </div>
+
+      <div id="admin-group-tabs" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px">
+        <button class="admin-group-tab active" data-group="A">A</button>
+        <button class="admin-group-tab" data-group="B">B</button>
+        <button class="admin-group-tab" data-group="C">C</button>
+        <button class="admin-group-tab" data-group="D">D</button>
+        <button class="admin-group-tab" data-group="E">E</button>
+        <button class="admin-group-tab" data-group="F">F</button>
+        <button class="admin-group-tab" data-group="G">G</button>
+        <button class="admin-group-tab" data-group="H">H</button>
+        <button class="admin-group-tab" data-group="I">I</button>
+        <button class="admin-group-tab" data-group="J">J</button>
+        <button class="admin-group-tab" data-group="K">K</button>
+        <button class="admin-group-tab" data-group="L">L</button>
+      </div>
+
+      <div id="admin-match-list">
+        <div class="loading-center"><span class="spinner"></span></div>
+      </div>
+    </div>
+
+    <!-- === PRISER === -->
+    <div id="admin-priser" class="admin-section hidden" style="display:none">
+      <div class="card" style="max-width:500px">
+        <h3 style="margin-bottom:16px">Faktiske prisvinnere</h3>
+        <p class="muted mb-16" style="font-size:0.85rem">Fyll inn etter turneringen er ferdig.</p>
+        <div class="divider"></div>
+        <h4 style="margin:16px 0 12px;color:var(--gold)">Beste spiller</h4>
+        <div class="form-group"><label>1. plass</label><input type="text" id="award-result-best_player_1" class="form-input" placeholder="Fullt navn..."></div>
+        <div class="form-group"><label>2. plass</label><input type="text" id="award-result-best_player_2" class="form-input" placeholder="Fullt navn..."></div>
+        <div class="form-group"><label>3. plass</label><input type="text" id="award-result-best_player_3" class="form-input" placeholder="Fullt navn..."></div>
+        <div class="divider"></div>
+        <h4 style="margin:16px 0 12px;color:var(--gold)">Toppscorer</h4>
+        <div class="form-group"><label>1. plass</label><input type="text" id="award-result-top_scorer_1" class="form-input" placeholder="Fullt navn..."></div>
+        <div class="form-group"><label>2. plass</label><input type="text" id="award-result-top_scorer_2" class="form-input" placeholder="Fullt navn..."></div>
+        <div class="form-group"><label>3. plass</label><input type="text" id="award-result-top_scorer_3" class="form-input" placeholder="Fullt navn..."></div>
+        <button class="btn btn-gold btn-full mt-8" onclick="saveAwardResults()">Lagre prisvinnere</button>
+      </div>
+    </div>
+
+    <!-- === BRUKERE === -->
+    <div id="admin-brukere" class="admin-section hidden" style="display:none">
+      <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+        <div class="stat-card" style="flex:1;min-width:120px">
+          <div class="stat-value" id="stats-users">–</div>
+          <div class="stat-label">Brukere</div>
+        </div>
+        <div class="stat-card" style="flex:1;min-width:120px">
+          <div class="stat-value" id="stats-played">–</div>
+          <div class="stat-label">Kamper spilt</div>
+        </div>
+        <div class="stat-card" style="flex:1;min-width:120px">
+          <div class="stat-value" id="stats-preds">–</div>
+          <div class="stat-label">Tips totalt</div>
+        </div>
+      </div>
+      <div class="leaderboard">
+        <div class="lb-header">
+          <div></div>
+          <div>Navn</div>
+          <div style="text-align:right">Tippet</div>
+          <div style="text-align:right">Registrert</div>
+          <div></div>
+          <div></div>
+        </div>
+        <div id="admin-user-list">
+          <div class="loading-center"><span class="spinner"></span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="admin-toast" class="hidden"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/scoring.js"></script>
+<script src="js/admin.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.admin-stage-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.getElementById('admin-group-tabs').style.display =
+          tab.dataset.stage === 'group' ? 'flex' : 'none';
+      });
+    });
+  });
+</script>
+</body>
+</html>

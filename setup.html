@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VM 2026 – Oppsett</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container" style="padding:24px 16px 48px">
+  <div style="text-align:center;margin-bottom:32px">
+    <h1 class="gold">⚙️ Oppsettverktøy</h1>
+    <p class="muted">VM 2026 Tipping – konfigurasjonshjelper</p>
+  </div>
+
+  <!-- Step 1: Generate password hashes -->
+  <div class="card mb-24">
+    <h2 style="margin-bottom:4px">Steg 1 – Generer passord-hasher</h2>
+    <p class="muted mb-16" style="font-size:0.88rem">Skriv inn passordene dine nedenfor for å generere SHA-256-hashene du trenger i <code>js/config.js</code>.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex-wrap:wrap" class="mb-16">
+      <div class="form-group">
+        <label>Nettstedspassord (for alle deltakere)</label>
+        <input type="text" id="site-pw" class="form-input" placeholder="F.eks. rekegruppa2026">
+      </div>
+      <div class="form-group">
+        <label>Adminpassord (kun for deg)</label>
+        <input type="text" id="admin-pw" class="form-input" placeholder="F.eks. noeHemmelig123">
+      </div>
+    </div>
+    <button class="btn btn-gold" onclick="generateHashes()">Generer hasher</button>
+
+    <div id="hash-result" class="hidden mt-16">
+      <div class="alert alert-success mb-8">Kopier disse hashene inn i <code>js/config.js</code>:</div>
+      <div class="card card-sm" style="font-family:monospace;font-size:0.85rem;background:var(--bg)">
+        <div class="mb-8"><span class="muted">SITE_PASSWORD_HASH:</span></div>
+        <div id="site-hash" style="word-break:break-all;color:var(--gold);margin-bottom:16px"></div>
+        <div class="mb-8"><span class="muted">ADMIN_PASSWORD_HASH:</span></div>
+        <div id="admin-hash" style="word-break:break-all;color:var(--gold)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Config.js content -->
+  <div class="card mb-24">
+    <h2 style="margin-bottom:4px">Steg 2 – Oppdater js/config.js</h2>
+    <p class="muted mb-16" style="font-size:0.88rem">Fyll inn disse verdiene i <code>js/config.js</code>:</p>
+    <div class="card card-sm" style="font-family:monospace;font-size:0.82rem;background:var(--bg);line-height:1.8">
+      <div><span style="color:#7a8aaa">SUPABASE_URL:</span>  <span style="color:#f59e0b">Supabase-prosjektets URL (f.eks. https://xyz.supabase.co)</span></div>
+      <div><span style="color:#7a8aaa">SUPABASE_ANON_KEY:</span> <span style="color:#f59e0b">Supabase anon/public key</span></div>
+      <div><span style="color:#7a8aaa">SITE_PASSWORD_HASH:</span> <span style="color:#f59e0b">SHA-256 hash fra steg 1</span></div>
+      <div><span style="color:#7a8aaa">ADMIN_PASSWORD_HASH:</span> <span style="color:#f59e0b">SHA-256 hash fra steg 1</span></div>
+    </div>
+    <div class="alert alert-info mt-16" style="font-size:0.85rem">
+      Finn Supabase URL og anon key i Supabase-dashbordet under <strong>Project Settings → API</strong>.
+    </div>
+  </div>
+
+  <!-- Step 3: Run SQL -->
+  <div class="card mb-24">
+    <h2 style="margin-bottom:4px">Steg 3 – Kjør SQL i Supabase</h2>
+    <p class="muted mb-16" style="font-size:0.88rem">Gå til Supabase → SQL Editor og kjør filene i denne rekkefølgen:</p>
+    <ol style="margin-left:20px;line-height:2;color:var(--text-muted)">
+      <li><code style="color:var(--gold)">sql/schema.sql</code> – oppretter tabellene</li>
+      <li><code style="color:var(--gold)">sql/seed.sql</code> – fyller inn alle 48 lag og 104 kamper</li>
+    </ol>
+    <div class="alert alert-error mt-16" style="font-size:0.85rem">
+      ⚠️ Kjør bare seed.sql én gang! Hvis du kjører den igjen vil du få duplikat-feil.
+    </div>
+  </div>
+
+  <!-- Step 4: GitHub Pages -->
+  <div class="card mb-24">
+    <h2 style="margin-bottom:4px">Steg 4 – Last opp til GitHub Pages</h2>
+    <p class="muted mb-16" style="font-size:0.88rem">Etter at config.js er oppdatert:</p>
+    <ol style="margin-left:20px;line-height:2;color:var(--text-muted)">
+      <li>Pakk hele mappen som .zip</li>
+      <li>Last opp til GitHub og aktiver GitHub Pages i repository-innstillingene</li>
+      <li>Pek rekegruppa.no CNAME til <code>dinbruker.github.io/ditt-repo</code></li>
+      <li>Del nettstedsadressen og passordet med gruppa!</li>
+    </ol>
+  </div>
+
+  <!-- Scoring reference -->
+  <div class="card mb-24">
+    <h2 style="margin-bottom:12px">Poengsystem</h2>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:0.88rem">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);color:var(--text-muted);text-align:left">
+            <th style="padding:8px 12px">Runde</th>
+            <th style="padding:8px 12px;text-align:right">Eksakt resultat</th>
+            <th style="padding:8px 12px;text-align:right">Riktig utfall (H/U/B)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px">Gruppespill</td><td style="padding:8px 12px;text-align:right;color:var(--gold);font-weight:700">3p</td><td style="padding:8px 12px;text-align:right">1p</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px">Runde av 32</td><td style="padding:8px 12px;text-align:right;color:var(--gold);font-weight:700">4p</td><td style="padding:8px 12px;text-align:right">2p</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px">Åttedelsfinale</td><td style="padding:8px 12px;text-align:right;color:var(--gold);font-weight:700">5p</td><td style="padding:8px 12px;text-align:right">2p</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px">Kvartfinale</td><td style="padding:8px 12px;text-align:right;color:var(--gold);font-weight:700">6p</td><td style="padding:8px 12px;text-align:right">3p</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px">Semifinale</td><td style="padding:8px 12px;text-align:right;color:var(--gold);font-weight:700">7p</td><td style="padding:8px 12px;text-align:right">3p</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px">Bronsefinale</td><td style="padding:8px 12px;text-align:right;color:var(--gold);font-weight:700">8p</td><td style="padding:8px 12px;text-align:right">4p</td></tr>
+          <tr><td style="padding:8px 12px;font-weight:700">Finale</td><td style="padding:8px 12px;text-align:right;color:var(--gold);font-weight:900">10p</td><td style="padding:8px 12px;text-align:right">5p</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert alert-info mt-16" style="font-size:0.82rem">
+      <strong>Ekstraomganger:</strong> Dersom kampen går til ekstraomganger, gjelder resultatet etter 120 min (ikke straffespark) for poengberegningen. Tippa du 2-2 og det ble 2-2 etter e.o. = eksakt treff!
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:32px">
+    <a href="index.html" class="btn btn-gold">Gå til nettstedet →</a>
+    <a href="admin.html" class="btn btn-outline" style="margin-left:12px">Admin-panel →</a>
+  </div>
+</div>
+
+<script>
+async function sha256(msg) {
+  const buf  = new TextEncoder().encode(msg);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function generateHashes() {
+  const sitePw  = document.getElementById('site-pw').value;
+  const adminPw = document.getElementById('admin-pw').value;
+  if (!sitePw || !adminPw) {
+    alert('Fyll inn begge passordene først.');
+    return;
+  }
+  const [siteHash, adminHash] = await Promise.all([sha256(sitePw), sha256(adminPw)]);
+  document.getElementById('site-hash').textContent  = `'${siteHash}'`;
+  document.getElementById('admin-hash').textContent = `'${adminHash}'`;
+  document.getElementById('hash-result').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
