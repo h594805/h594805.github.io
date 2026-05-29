@@ -398,34 +398,12 @@ function renderDeadlineBanner() {
     : '';
 }
 
-function firstMatchText() {
-  const diff = CONFIG.FIRST_MATCH - new Date();
-  if (diff <= 0) return null;
-  const days = Math.floor(diff / 86400000);
-  const hrs  = Math.floor((diff % 86400000) / 3600000);
-  const mins = Math.floor((diff % 3600000)  / 60000);
-  if (days > 0) return `· ${days}d ${hrs}t`;
-  if (hrs  > 0) return `· ${hrs}t ${mins}m`;
-  return `· ${mins}m`;
-}
-
 function renderHeaderDeadline() {
-  const fristEl = document.getElementById('header-frist');
-  const startEl = document.getElementById('header-first-match');
-
-  if (fristEl) {
-    if (deadlinePassed()) {
-      fristEl.textContent = '';
-    } else {
-      const txt = deadlineText();
-      fristEl.textContent = txt ? `Frist: ${txt}` : '';
-    }
-  }
-
-  if (startEl) {
-    const txt = firstMatchText();
-    startEl.textContent = txt || '';
-  }
+  const el = document.getElementById('header-frist');
+  if (!el) return;
+  if (deadlinePassed()) { el.textContent = ''; return; }
+  const txt = deadlineText();
+  el.textContent = txt ? `Frist: ${txt}` : '';
 }
 
 function setupStageTabs(stageEl, groupEl) {

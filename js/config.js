@@ -15,8 +15,6 @@ const CONFIG = {
   // Spådomsfrist: 7. juni 2026 kl. 21:00 norsk tid (CEST = UTC+2)
   DEADLINE: new Date('2026-06-07T19:00:00Z'),
 
-  // Åpningskamp: 11. juni 2026 kl. 21:00 norsk tid (CEST = UTC+2)
-  FIRST_MATCH: new Date('2026-06-11T19:00:00Z'),
 
   // --- Poengsystem ---
   SCORING: {

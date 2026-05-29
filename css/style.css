@@ -397,16 +397,15 @@ select.form-input { cursor: pointer; }
 }
 .header-logo {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
+  align-items: center;
+  gap: 5px;
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 900;
   font-size: 1.1rem;
   letter-spacing: 1.5px;
   color: var(--text);
+  white-space: nowrap;
   min-width: 0;
-  line-height: 1.1;
 }
 .header-logo svg {
   width: 18px; height: 18px;
