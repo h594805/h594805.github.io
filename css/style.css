@@ -37,7 +37,7 @@ input, select, button { font-family: inherit; }
 
 /* ---- Base ---- */
 html {
-  overflow-x: hidden;
+  overflow-x: clip;
   overscroll-behavior-x: none;
 }
 body {
@@ -82,26 +82,27 @@ code   { font-family: 'SF Mono', monospace; font-size: 0.85em; color: var(--gold
    ================================================================ */
 
 .full-screen {
+  min-height: 100svh;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32px 20px;
+  padding: 16px 20px;
   background: var(--bg);
 }
 
 .wc-logo-area {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 14px;
 }
 .wc-trophy {
   display: flex;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 .wc-trophy-img {
-  height: 40px;
+  height: 28px;
   width: auto;
   display: block;
 }
@@ -118,14 +119,14 @@ code   { font-family: 'SF Mono', monospace; font-size: 0.85em; color: var(--gold
 }
 .wc-title .line1 {
   display: block;
-  font-size: 3rem;
+  font-size: 2.4rem;
   letter-spacing: 3px;
   color: var(--gold);
 }
 .wc-title .line2 {
   display: block;
-  font-size: 1.5rem;
-  letter-spacing: 5px;
+  font-size: 1.2rem;
+  letter-spacing: 4px;
   color: var(--text);
   margin-top: 2px;
 }
@@ -143,7 +144,7 @@ code   { font-family: 'SF Mono', monospace; font-size: 0.85em; color: var(--gold
   max-width: 380px;
   background: var(--surface);
   border-radius: var(--radius-lg);
-  padding: 28px 24px;
+  padding: 18px 20px;
   border: 1px solid var(--border);
   box-shadow: 0 4px 24px rgba(0,0,0,0.07);
 }
@@ -154,7 +155,7 @@ code   { font-family: 'SF Mono', monospace; font-size: 0.85em; color: var(--gold
   background: var(--surface-3);
   border-radius: calc(var(--radius) + 2px);
   padding: 3px;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
   position: relative;
 }
 .auth-tabs::before {
@@ -200,7 +201,7 @@ code   { font-family: 'SF Mono', monospace; font-size: 0.85em; color: var(--gold
    FORMS
    ================================================================ */
 
-.form-group { margin-bottom: 14px; }
+.form-group { margin-bottom: 10px; }
 .form-group label {
   display: block;
   font-size: 0.75rem;
@@ -217,7 +218,7 @@ code   { font-family: 'SF Mono', monospace; font-size: 0.85em; color: var(--gold
   border-radius: var(--radius-sm);
   padding: 12px 14px;
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: 16px;
   outline: none;
   transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
   -webkit-appearance: none;
@@ -235,8 +236,8 @@ select.form-input { cursor: pointer; }
 .pin-dots {
   display: flex;
   justify-content: center;
-  gap: 16px;
-  margin: 8px 0 22px;
+  gap: 14px;
+  margin: 4px 0 12px;
 }
 .pin-dot {
   width: 13px; height: 13px;
@@ -250,8 +251,8 @@ select.form-input { cursor: pointer; }
 .pin-pad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  max-width: 252px;
+  gap: 8px;
+  max-width: 216px;
   margin: 0 auto;
 }
 .pin-key {
@@ -260,7 +261,7 @@ select.form-input { cursor: pointer; }
   border: none;
   border-radius: 50%;
   color: var(--text);
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 600;
   transition: background 0.12s, transform 0.08s;
   display: flex;
@@ -379,30 +380,33 @@ select.form-input { cursor: pointer; }
   border-bottom: 1px solid var(--border);
 }
 .header-sub {
-  font-size: 0.58rem;
+  font-size: 0.52rem;
   font-weight: 600;
   color: var(--text-muted);
-  margin-left: 5px;
+  margin-left: 4px;
   white-space: nowrap;
-  letter-spacing: 0.1px;
+  flex-shrink: 0;
 }
 .header-frist {
-  font-size: 0.65rem;
+  font-size: 0.55rem;
   font-weight: 700;
   color: var(--red);
   text-align: center;
   white-space: nowrap;
-  letter-spacing: 0.2px;
+  padding: 0 4px;
 }
 .header-logo {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 900;
   font-size: 1.1rem;
   letter-spacing: 1.5px;
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
 }
 .header-logo svg {
   width: 18px; height: 18px;
@@ -726,10 +730,10 @@ select.form-input { cursor: pointer; }
   color: var(--text);
   line-height: 1;
 }
+.stat-value.stat-plain { font-weight: 700; font-size: 1.9rem; }
 .stat-value.rank-1 { color: #b8860b; font-weight: 900; }
 .stat-value.rank-2 { color: #8e8e93; font-weight: 900; }
 .stat-value.rank-3 { color: #a05c1a; font-weight: 900; }
-.stat-value.stat-plain { font-weight: 400; font-size: 1.9rem; }
 .stat-label {
   font-size: 0.7rem;
   color: var(--text-muted);
@@ -1136,9 +1140,9 @@ details[open] .scoring-toggle-hint { display: none; }
    ================================================================ */
 
 .bracket-wrap {
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: auto;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
   padding-bottom: 8px;
   margin-bottom: 24px;
   max-width: 100%;

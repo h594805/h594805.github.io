@@ -318,6 +318,7 @@ function navigateTo(page) {
   State.currentPage = page;
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
   document.querySelectorAll('.app-section').forEach(s => s.classList.toggle('hidden', s.id !== 'section-' + page));
+  window.scrollTo(0, 0);
 
   if      (page === 'dashboard')  renderDashboard();
   else if (page === 'oversikt')   renderOverview();
@@ -403,9 +404,9 @@ function firstMatchText() {
   const days = Math.floor(diff / 86400000);
   const hrs  = Math.floor((diff % 86400000) / 3600000);
   const mins = Math.floor((diff % 3600000)  / 60000);
-  if (days > 0) return `· ${days}d ${hrs}t til start`;
-  if (hrs  > 0) return `· ${hrs}t ${mins}m til start`;
-  return `· ${mins}m til start`;
+  if (days > 0) return `· ${days}d ${hrs}t`;
+  if (hrs  > 0) return `· ${hrs}t ${mins}m`;
+  return `· ${mins}m`;
 }
 
 function renderHeaderDeadline() {
