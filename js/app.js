@@ -527,6 +527,7 @@ function renderMatchCard(match, withInput, bracketHome = null, bracketAway = nul
 
   const homeName = homeTeam ? (homeTeam.name_no || homeTeam.name) : (match.home_slot_desc || '?');
   const awayName = awayTeam ? (awayTeam.name_no || awayTeam.name) : (match.away_slot_desc || '?');
+  const isKnockout = match.stage !== 'group';
 
   const stageBadge = match.stage === 'group'
     ? `<span class="group-badge">Gruppe ${match.group_letter}</span>`
@@ -537,6 +538,7 @@ function renderMatchCard(match, withInput, bracketHome = null, bracketAway = nul
 
   // Center column: score, inputs, or vs
   let centerHTML;
+  let penPickerHTML = '';
   // Optional second row (played matches only)
   let predRowHTML = '';
 
@@ -551,8 +553,11 @@ function renderMatchCard(match, withInput, bracketHome = null, bracketAway = nul
     if (pred) {
       const pts    = Scoring.calculate(pred.home_score_pred, pred.away_score_pred, match);
       const ptsCls = pts === CONFIG.SCORING[match.stage]?.exact ? 'pts-exact' : pts > 0 ? 'pts-outcome' : 'pts-zero';
+      const penNote = isKnockout && pred.home_score_pred === pred.away_score_pred && pred.penalty_winner_pred
+        ? ` (str. ${pred.penalty_winner_pred === 'home' ? esc(homeName) : esc(awayName)})`
+        : '';
       predRowHTML = `<div class="pred-row-sm">
-        <span class="pred-label">Spådd: ${pred.home_score_pred}–${pred.away_score_pred}</span>
+        <span class="pred-label">Spådd: ${pred.home_score_pred}–${pred.away_score_pred}${penNote}</span>
         <span class="pts-badge ${ptsCls}">${pts} poeng</span>
       </div>`;
     } else {
@@ -561,15 +566,32 @@ function renderMatchCard(match, withInput, bracketHome = null, bracketAway = nul
   } else if (withInput && !locked) {
     const hVal = pred?.home_score_pred ?? '';
     const aVal = pred?.away_score_pred ?? '';
+    const penWinner = pred?.penalty_winner_pred ?? null;
+    const showPenPicker = isKnockout && pred && pred.home_score_pred != null && pred.away_score_pred != null && pred.home_score_pred === pred.away_score_pred;
     centerHTML = `<div class="match-input-center">
-      <input type="number" class="score-input" id="ph-${match.id}" value="${hVal}" min="0" max="30" inputmode="numeric" placeholder="–" oninput="schedSave(${match.id})">
+      <input type="number" class="score-input" id="ph-${match.id}" value="${hVal}" min="0" max="30" inputmode="numeric" placeholder="–" oninput="handleScoreInput(${match.id})">
       <span class="score-dash">–</span>
-      <input type="number" class="score-input" id="pa-${match.id}" value="${aVal}" min="0" max="30" inputmode="numeric" placeholder="–" oninput="schedSave(${match.id})">
+      <input type="number" class="score-input" id="pa-${match.id}" value="${aVal}" min="0" max="30" inputmode="numeric" placeholder="–" oninput="handleScoreInput(${match.id})">
       <span class="save-status" id="save-status-${match.id}"></span>
     </div>`;
+    if (isKnockout) {
+      const homeFlagSm = homeTeam ? flagImg(homeTeam, 20, 'flag-xs flag-img') : '';
+      const awayFlagSm = awayTeam ? flagImg(awayTeam, 20, 'flag-xs flag-img') : '';
+      penPickerHTML = `<div class="penalty-picker" id="pen-picker-${match.id}" style="display:${showPenPicker ? 'flex' : 'none'}">
+        <span class="pen-question">Hvilket lag går videre?</span>
+        <div class="pen-choices">
+          <button class="pen-btn${penWinner === 'home' ? ' selected' : ''}" data-side="home" onclick="setPenWinner(${match.id},'home')">${homeFlagSm}<span>${esc(homeName)}</span></button>
+          <button class="pen-btn${penWinner === 'away' ? ' selected' : ''}" data-side="away" onclick="setPenWinner(${match.id},'away')">${awayFlagSm}<span>${esc(awayName)}</span></button>
+        </div>
+      </div>`;
+    }
   } else if (pred) {
+    const penNote = isKnockout && pred.home_score_pred === pred.away_score_pred && pred.penalty_winner_pred
+      ? `<div style="font-size:0.6rem;color:var(--text-muted);margin-top:2px">str. ${pred.penalty_winner_pred === 'home' ? esc(homeName) : esc(awayName)}</div>`
+      : '';
     centerHTML = `<div class="match-score-center">
       <div class="score-pred">${pred.home_score_pred} – ${pred.away_score_pred}</div>
+      ${penNote}
       <span class="pts-badge pts-pending" style="font-size:0.6rem;margin-top:2px">Venter</span>
     </div>`;
   } else {
@@ -591,6 +613,7 @@ function renderMatchCard(match, withInput, bracketHome = null, bracketAway = nul
           ${awayFlag}<span class="team-name-sm">${esc(awayName)}</span>
         </div>
       </div>
+      ${penPickerHTML}
       ${predRowHTML}
     </div>`;
 }
@@ -753,6 +776,34 @@ function flushPendingSaves() {
   }
 }
 
+function handleScoreInput(matchId) {
+  checkPenaltyPicker(matchId);
+  schedSave(matchId);
+}
+
+function checkPenaltyPicker(matchId) {
+  const picker = document.getElementById(`pen-picker-${matchId}`);
+  if (!picker) return;
+  const h = parseInt(document.getElementById(`ph-${matchId}`)?.value);
+  const a = parseInt(document.getElementById(`pa-${matchId}`)?.value);
+  picker.style.display = (!isNaN(h) && !isNaN(a) && h === a) ? 'flex' : 'none';
+}
+
+async function setPenWinner(matchId, side) {
+  if (deadlinePassed()) return;
+  const picker = document.getElementById(`pen-picker-${matchId}`);
+  if (picker) {
+    picker.querySelectorAll('.pen-btn').forEach(b => b.classList.remove('selected'));
+    picker.querySelector(`.pen-btn[data-side="${side}"]`)?.classList.add('selected');
+  }
+  const existing = State.predictions.find(p => p.match_id === matchId);
+  if (!existing) return;
+  const { error } = await db.from('predictions')
+    .update({ penalty_winner_pred: side, updated_at: new Date().toISOString() })
+    .eq('id', existing.id);
+  if (!error) existing.penalty_winner_pred = side;
+}
+
 async function savePrediction(matchId, auto = false) {
   if (deadlinePassed()) return;
 
@@ -774,11 +825,15 @@ async function savePrediction(matchId, auto = false) {
   let error;
 
   if (existing) {
-    const res = await db.from('predictions')
-      .update({ home_score_pred: h, away_score_pred: a, updated_at: new Date().toISOString() })
-      .eq('id', existing.id);
+    const updateData = { home_score_pred: h, away_score_pred: a, updated_at: new Date().toISOString() };
+    if (h !== a) updateData.penalty_winner_pred = null;
+    const res = await db.from('predictions').update(updateData).eq('id', existing.id);
     error = res.error;
-    if (!error) { existing.home_score_pred = h; existing.away_score_pred = a; }
+    if (!error) {
+      existing.home_score_pred = h;
+      existing.away_score_pred = a;
+      if (h !== a) existing.penalty_winner_pred = null;
+    }
   } else {
     const res = await db.from('predictions')
       .insert([{ user_id: State.user.id, match_id: matchId, home_score_pred: h, away_score_pred: a }])

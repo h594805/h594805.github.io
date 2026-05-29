@@ -636,8 +636,10 @@ const Bracket = {
       if (!match) return null;
       const p = predictions.find(pr => pr.match_id === match.id);
       if (!p || p.home_score_pred == null) return null;
-      // Draw → home team advances (simplified for bracket display)
-      return p.away_score_pred > p.home_score_pred ? slot.away : slot.home;
+      if (p.away_score_pred > p.home_score_pred) return slot.away;
+      if (p.away_score_pred < p.home_score_pred) return slot.home;
+      // Draw: use penalty winner prediction, default to home if not set
+      return p.penalty_winner_pred === 'away' ? slot.away : slot.home;
     };
 
     // R32 winners

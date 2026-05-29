@@ -51,8 +51,9 @@ CREATE TABLE IF NOT EXISTS predictions (
   id              SERIAL PRIMARY KEY,
   user_id         INT REFERENCES app_users(id) ON DELETE CASCADE,
   match_id        INT REFERENCES matches(id)    ON DELETE CASCADE,
-  home_score_pred INT NOT NULL CHECK (home_score_pred >= 0),
-  away_score_pred INT NOT NULL CHECK (away_score_pred >= 0),
+  home_score_pred     INT NOT NULL CHECK (home_score_pred >= 0),
+  away_score_pred     INT NOT NULL CHECK (away_score_pred >= 0),
+  penalty_winner_pred VARCHAR(4) CHECK (penalty_winner_pred IN ('home', 'away')),
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   updated_at      TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, match_id)
