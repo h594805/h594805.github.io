@@ -484,9 +484,15 @@ function renderTippingList(listEl) {
   let bracketData = null;
 
   if (State.currentStage === 'group') {
-    matches = State.matches.filter(m => m.stage === 'group' && m.group_letter === State.currentGroup);
+    matches = State.matches
+      .filter(m => m.stage === 'group' && m.group_letter === State.currentGroup)
+      .slice()
+      .sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
   } else {
-    matches = State.matches.filter(m => m.stage === State.currentStage);
+    matches = State.matches
+      .filter(m => m.stage === State.currentStage)
+      .slice()
+      .sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
     bracketData = Bracket.build(State.predictions, State.teams, State.matches, State.thirdTiebreaker);
   }
 
@@ -689,8 +695,8 @@ function renderBracketTree(bracketData) {
 
   // Matches grouped into pairs that feed into the same next-round slot
   const rounds = [
-    { label: '16-del', pairs: [[73,74],[75,76],[77,78],[79,80],[81,82],[83,84],[85,86],[87,88]] },
-    { label: '8-del',  pairs: [[89,90],[91,92],[93,94],[95,96]] },
+    { label: '16-del', pairs: [[74,77],[73,75],[83,84],[81,82],[76,78],[79,80],[86,88],[85,87]] },
+    { label: '8-del',  pairs: [[89,90],[93,94],[91,92],[95,96]] },
     { label: 'KF',     pairs: [[97,98],[99,100]] },
     { label: 'SF',     pairs: [[101,102]] },
     { label: 'Finale', pairs: [[104]] },

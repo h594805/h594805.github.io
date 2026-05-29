@@ -43,11 +43,11 @@ Del nettstedsadressen og passordet med alle deltakere. De oppretter sin egen bru
 
 | Runde | Eksakt resultat | Riktig utfall |
 |-------|:-:|:-:|
-| Gruppespill | 3p | 1p |
-| Runde av 32 | 4p | 2p |
-| Åttedelsfinale | 5p | 2p |
-| Kvartfinale | 6p | 3p |
-| Semifinale | 7p | 3p |
+| Gruppespill | 3p | 3 |
+| Runde av 32 | 4p | 3p |
+| Åttedelsfinale | 5p | 3p |
+| Kvartfinale | 6p | 4p |
+| Semifinale | 7p | 4p |
 | Bronsefinale | 8p | 4p |
 | Finale | **10p** | **5p** |
 
