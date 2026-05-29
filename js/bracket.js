@@ -34,7 +34,7 @@ const Bracket = {
     const groupMatches = matches.filter(m => m.stage === 'group' && m.group_letter === groupLetter);
 
     const tbl = {};
-    for (const t of groupTeams) tbl[t.id] = { team: t, pts: 0, gf: 0, ga: 0, gd: 0 };
+    for (const t of groupTeams) tbl[t.id] = { team: t, pts: 0, gf: 0, ga: 0, gd: 0, w: 0, d: 0, l: 0 };
 
     for (const m of groupMatches) {
       const p = predictions.find(pr => pr.match_id === m.id);
@@ -42,9 +42,16 @@ const Bracket = {
       const h = p.home_score_pred, a = p.away_score_pred;
       if (tbl[m.home_team_id]) { tbl[m.home_team_id].gf += h; tbl[m.home_team_id].ga += a; tbl[m.home_team_id].gd += h - a; }
       if (tbl[m.away_team_id]) { tbl[m.away_team_id].gf += a; tbl[m.away_team_id].ga += h; tbl[m.away_team_id].gd += a - h; }
-      if (h > a)      { if (tbl[m.home_team_id]) tbl[m.home_team_id].pts += 3; }
-      else if (h < a) { if (tbl[m.away_team_id]) tbl[m.away_team_id].pts += 3; }
-      else            { if (tbl[m.home_team_id]) tbl[m.home_team_id].pts += 1; if (tbl[m.away_team_id]) tbl[m.away_team_id].pts += 1; }
+      if (h > a) {
+        if (tbl[m.home_team_id]) { tbl[m.home_team_id].pts += 3; tbl[m.home_team_id].w++; }
+        if (tbl[m.away_team_id]) tbl[m.away_team_id].l++;
+      } else if (h < a) {
+        if (tbl[m.away_team_id]) { tbl[m.away_team_id].pts += 3; tbl[m.away_team_id].w++; }
+        if (tbl[m.home_team_id]) tbl[m.home_team_id].l++;
+      } else {
+        if (tbl[m.home_team_id]) { tbl[m.home_team_id].pts += 1; tbl[m.home_team_id].d++; }
+        if (tbl[m.away_team_id]) { tbl[m.away_team_id].pts += 1; tbl[m.away_team_id].d++; }
+      }
     }
 
     return Object.values(tbl).sort((a, b) =>
@@ -52,23 +59,42 @@ const Bracket = {
     );
   },
 
-  // Best 8 third-place teams across all groups
-  getBest8Third(allGroupStandings) {
+  isTiedThird(a, b) {
+    return a.pts === b.pts && (a.w ?? 0) === (b.w ?? 0) && (a.d ?? 0) === (b.d ?? 0) && (a.l ?? 0) === (b.l ?? 0) && a.gd === b.gd && a.gf === b.gf;
+  },
+
+  // Best 8 third-place teams across all groups, respecting manual tiebreaker
+  getBest8Third(allGroupStandings, tiebreaker = null) {
     const thirds = [];
     for (const s of allGroupStandings) if (s.length >= 3) thirds.push(s[2]);
     thirds.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.team.name.localeCompare(b.team.name));
+    if (tiebreaker && Array.isArray(tiebreaker)) {
+      // Within each tied group, apply the manual order
+      const result = [];
+      let i = 0;
+      while (i < thirds.length) {
+        let j = i + 1;
+        while (j < thirds.length && this.isTiedThird(thirds[i], thirds[j])) j++;
+        const group = thirds.slice(i, j).sort((a, b) => {
+          const ia = tiebreaker.indexOf(a.team.id);
+          const ib = tiebreaker.indexOf(b.team.id);
+          if (ia !== -1 && ib !== -1) return ia - ib;
+          return 0;
+        });
+        result.push(...group);
+        i = j;
+      }
+      return result.slice(0, 8);
+    }
     return thirds.slice(0, 8);
   },
 
-  // Build full predicted bracket from user predictions.
-  // Returns { allStandings, best8Third, predictedTeams }
-  // predictedTeams[matchNum] = { home: team|null, away: team|null }
-  build(predictions, teams, matches) {
+  build(predictions, teams, matches, tiebreaker = null) {
     // Group standings
     const allStandings = {};
     for (const g of this.GROUPS) allStandings[g] = this.calcGroupStandings(g, predictions, teams, matches);
 
-    const best8Third = this.getBest8Third(Object.values(allStandings));
+    const best8Third = this.getBest8Third(Object.values(allStandings), tiebreaker);
 
     // Assign best-third teams to '3T' slots in THIRD_SLOTS_ORDER
     const thirdSlot = {};
@@ -129,6 +155,29 @@ const Bracket = {
     predictedTeams[104] = { home: predictedWinner[101] || null, away: predictedWinner[102] || null };
     predictedWinner[104] = pickWinner(104);
 
-    return { allStandings, best8Third, predictedTeams, predictedWinner };
+    // allThirds: all 12 third-place teams sorted with tiebreaker applied
+    const allThirds = [];
+    for (const s of Object.values(allStandings)) if (s.length >= 3) allThirds.push(s[2]);
+    allThirds.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.team.name.localeCompare(b.team.name));
+    if (tiebreaker && Array.isArray(tiebreaker)) {
+      const result = [];
+      let i = 0;
+      while (i < allThirds.length) {
+        let j = i + 1;
+        while (j < allThirds.length && this.isTiedThird(allThirds[i], allThirds[j])) j++;
+        const group = allThirds.slice(i, j).sort((a, b) => {
+          const ia = tiebreaker.indexOf(a.team.id);
+          const ib = tiebreaker.indexOf(b.team.id);
+          if (ia !== -1 && ib !== -1) return ia - ib;
+          return 0;
+        });
+        result.push(...group);
+        i = j;
+      }
+      allThirds.length = 0;
+      allThirds.push(...result);
+    }
+
+    return { allStandings, best8Third, allThirds, predictedTeams, predictedWinner };
   },
 };

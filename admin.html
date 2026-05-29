@@ -104,8 +104,7 @@
     <!-- Main tabs -->
     <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:24px">
       <button class="admin-tab active" data-section="kamper">Kamper</button>
-      <button class="admin-tab" data-section="priser">Priser</button>
-      <button class="admin-tab" data-section="brukere">Brukere</button>
+      <button class="admin-tab" data-section="priser">Kåringer</button>
     </div>
 
     <!-- === KAMPER === -->
@@ -142,7 +141,7 @@
     </div>
 
     <!-- === PRISER === -->
-    <div id="admin-priser" class="admin-section hidden" style="display:none">
+    <div id="admin-priser" class="admin-section" style="display:none">
       <div class="card" style="max-width:500px">
         <h3 style="margin-bottom:16px">Faktiske prisvinnere</h3>
         <p class="muted mb-16" style="font-size:0.85rem">Fyll inn etter turneringen er ferdig.</p>
@@ -160,36 +159,6 @@
       </div>
     </div>
 
-    <!-- === BRUKERE === -->
-    <div id="admin-brukere" class="admin-section hidden" style="display:none">
-      <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap">
-        <div class="stat-card" style="flex:1;min-width:120px">
-          <div class="stat-value" id="stats-users">–</div>
-          <div class="stat-label">Brukere</div>
-        </div>
-        <div class="stat-card" style="flex:1;min-width:120px">
-          <div class="stat-value" id="stats-played">–</div>
-          <div class="stat-label">Kamper spilt</div>
-        </div>
-        <div class="stat-card" style="flex:1;min-width:120px">
-          <div class="stat-value" id="stats-preds">–</div>
-          <div class="stat-label">Tips totalt</div>
-        </div>
-      </div>
-      <div class="leaderboard">
-        <div class="lb-header">
-          <div></div>
-          <div>Navn</div>
-          <div style="text-align:right">Tippet</div>
-          <div style="text-align:right">Registrert</div>
-          <div></div>
-          <div></div>
-        </div>
-        <div id="admin-user-list">
-          <div class="loading-center"><span class="spinner"></span></div>
-        </div>
-      </div>
-    </div>
 
   </div>
 </div>

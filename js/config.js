@@ -17,13 +17,13 @@ const CONFIG = {
 
   // --- Poengsystem ---
   SCORING: {
-    group: { exact: 3, outcome: 1 },
-    r32:   { exact: 4, outcome: 2 },
-    r16:   { exact: 5, outcome: 2 },
-    qf:    { exact: 6, outcome: 3 },
-    sf:    { exact: 7, outcome: 3 },
-    '3rd': { exact: 8, outcome: 4 },
-    final: { exact: 10, outcome: 5 },
+    group: { outcome: 3, exact: 3  },
+    r32:   { outcome: 3, exact: 4  },
+    r16:   { outcome: 3, exact: 5  },
+    qf:    { outcome: 3, exact: 6  },
+    sf:    { outcome: 3, exact: 7  },
+    '3rd': { outcome: 3, exact: 8  },
+    final: { outcome: 5, exact: 10 },
   },
 
   // --- Prisprediksjon-poeng ---
@@ -34,9 +34,10 @@ const CONFIG = {
 
   // --- Runde-navn (norsk) ---
   STAGE_NAMES: {
-    group: 'Gruppespill',
-    r32:   'Runde av 32',
-    r16:   'Runde av 16',
+    group:  'Gruppespill',
+    thirds: 'Beste treere',
+    r32:    '16-delsfinale',
+    r16:   '8-delsfinale',
     qf:    'Kvartfinale',
     sf:    'Semifinale',
     '3rd': 'Bronsefinale',

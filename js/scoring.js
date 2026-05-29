@@ -24,9 +24,9 @@ const Scoring = {
       resAway = match.away_score;
     }
 
-    // Exact score
+    // Exact score: outcome points + bonus
     if (predHome === resHome && predAway === resAway) {
-      return pts.exact;
+      return pts.outcome + pts.exact;
     }
 
     // Correct outcome (H/D/A based on effective result, NOT penalty result)
@@ -91,17 +91,22 @@ const Scoring = {
   buildLeaderboard(users, predictions, matches, awardPredictions, awardResults) {
     return users.map(user => {
       const userPreds = predictions.filter(p => p.user_id === user.id);
-      let matchPoints = 0, correct = 0, exactCount = 0;
+      let matchPoints = 0, outcomePts = 0, exactPts = 0, exactCount = 0;
 
       for (const pred of userPreds) {
         const match = matches.find(m => m.id === pred.match_id);
         if (!match || !match.is_played) continue;
         const pts = this.calculate(pred.home_score_pred, pred.away_score_pred, match);
-        if (pts === null) continue;
+        if (pts === null || pts === 0) continue;
         matchPoints += pts;
-        if (pts > 0) correct++;
         const scoring = CONFIG.SCORING[match.stage];
-        if (scoring && pts === scoring.exact) exactCount++;
+        if (scoring && pts === scoring.outcome + scoring.exact) {
+          outcomePts += scoring.outcome;
+          exactPts   += scoring.exact;
+          exactCount++;
+        } else {
+          outcomePts += pts;
+        }
       }
 
       const userAward  = awardPredictions.find(a => a.user_id === user.id) || null;
@@ -112,10 +117,11 @@ const Scoring = {
         matchPoints,
         awardPoints,
         total: matchPoints + awardPoints,
-        correct,
+        outcomePts,
+        exactPts,
         exact: exactCount,
         predictions: userPreds.length,
       };
-    }).sort((a, b) => b.total - a.total || b.exact - a.exact || b.correct - a.correct);
+    }).sort((a, b) => b.total - a.total || b.exactPts - a.exactPts || b.outcomePts - a.outcomePts);
   },
 };

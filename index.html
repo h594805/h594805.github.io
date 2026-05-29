@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VM 2026 – Rekegruppa</title>
-  <meta name="description" content="VM 2026 tipping for Rekegruppa">
+  <title>VM 2026 - Rekegutta</title>
+  <meta name="description" content="VM 2026 tipping for Rekegutta">
   <link rel="icon" id="favicon" type="image/png" href="images/2026_FIFA_World_Cup_emblem.svg.webp">
   <meta name="theme-color" content="#f5f5f7">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,8 +31,25 @@ const scale = Math.min(64 / img.width, 64 / img.height);
 
 <!-- Splash screen -->
 <div id="splash-screen">
-  <img src="images/2026_FIFA_World_Cup_emblem.svg.webp" alt="FIFA World Cup 2026" id="splash-img">
+<img src="images/2026_FIFA_World_Cup_emblem.svg.webp" alt="FIFA World Cup 2026" id="splash-img">
 </div>
+<script>
+(function() {
+  var count = 22;
+  for (var i = 0; i < count; i++) {
+    var s = document.createElement('span');
+    s.textContent = '🦐';
+    s.className = 'splash-shrimp';
+    var size = (1.4 + Math.random() * 1.8).toFixed(2);
+    var left = (4 + Math.random() * 92).toFixed(1);
+    var delay = (Math.random() * 1.8).toFixed(2);
+    var dur = (2.4 + Math.random() * 2).toFixed(2);
+    s.style.cssText = 'font-size:' + size + 'rem;left:' + left + '%;bottom:-60px;animation-delay:' + delay + 's;animation-duration:' + dur + 's;';
+    s.addEventListener('animationend', function() { this.remove(); });
+    document.body.appendChild(s);
+  }
+})();
+</script>
 
 <div id="root">
 
@@ -47,7 +64,6 @@ const scale = Math.min(64 / img.width, 64 / img.height);
         <span class="line1">VM 2026</span>
         <span class="line2">TIPPING</span>
       </div>
-      <p class="wc-subtitle">Rekegruppa · Canada · Mexico · USA</p>
     </div>
     <div class="auth-box">
       <!-- Tabs -->
@@ -118,7 +134,7 @@ const scale = Math.min(64 / img.width, 64 / img.height);
         <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
           <div class="stat-card"><div class="stat-value" id="dash-rank">–</div><div class="stat-label">Plass</div></div>
           <div class="stat-card"><div class="stat-value" id="dash-pts">0</div><div class="stat-label">Poeng</div></div>
-          <div class="stat-card"><div class="stat-value" id="dash-exact">0</div><div class="stat-label">Eksakt</div></div>
+          <div class="stat-card"><div class="stat-value stat-plain" id="dash-exact">0</div><div class="stat-label">Korrekt resultat</div></div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
           <div class="section-title" style="margin-bottom:0">Tabellen</div>
@@ -127,10 +143,9 @@ const scale = Math.min(64 / img.width, 64 / img.height);
         <div class="leaderboard">
           <div class="lb-header">
             <div></div><div>Navn</div>
-            <div style="text-align:right">Poeng</div>
+            <div style="text-align:right">Utfall</div>
             <div style="text-align:right">Eksakt</div>
-            <div style="text-align:right">Riktig</div>
-            <div style="text-align:right" class="lb-col-pred">Tippet</div>
+            <div style="text-align:right">Poeng</div>
           </div>
           <div id="dash-leaderboard"></div>
         </div>
@@ -139,16 +154,16 @@ const scale = Math.min(64 / img.width, 64 / img.height);
           <div class="scoring-table-wrap">
             <table class="scoring-table">
               <thead>
-                <tr><th>Runde</th><th>Eksakt resultat</th><th>Riktig utfall</th></tr>
+                <tr><th>Runde</th><th>Riktig utfall</th><th>+ Eksakt resultat</th></tr>
               </thead>
               <tbody>
-                <tr><td>Gruppespill</td><td>3 p</td><td>1 p</td></tr>
-                <tr><td>Runde av 32</td><td>4 p</td><td>2 p</td></tr>
-                <tr><td>Runde av 16</td><td>5 p</td><td>2 p</td></tr>
-                <tr><td>Kvartfinale</td><td>6 p</td><td>3 p</td></tr>
-                <tr><td>Semifinale</td><td>7 p</td><td>3 p</td></tr>
-                <tr><td>Bronsefinale</td><td>8 p</td><td>4 p</td></tr>
-                <tr class="final-row"><td>Finale</td><td>10 p</td><td>5 p</td></tr>
+                <tr><td>Gruppespill</td><td>3 p</td><td>+3 p</td></tr>
+                <tr><td>16-delsfinale</td><td>3 p</td><td>+4 p</td></tr>
+                <tr><td>8-delsfinale</td><td>3 p</td><td>+5 p</td></tr>
+                <tr><td>Kvartfinale</td><td>3 p</td><td>+6 p</td></tr>
+                <tr><td>Semifinale</td><td>3 p</td><td>+7 p</td></tr>
+                <tr><td>Bronsefinale</td><td>3 p</td><td>+8 p</td></tr>
+                <tr class="final-row"><td>Finale</td><td>5 p</td><td>+10 p</td></tr>
               </tbody>
             </table>
             <p class="scoring-note">
@@ -165,7 +180,7 @@ const scale = Math.min(64 / img.width, 64 / img.height);
     <!-- === OVERSIKT === -->
     <section class="app-section hidden" id="section-oversikt">
       <div class="container" style="padding-top:20px">
-        <h2 style="margin-bottom:16px">Oversikt</h2>
+        <h2 id="oversikt-title" style="margin-bottom:16px">Mine spådommer</h2>
         <div id="oversikt-content"></div>
       </div>
     </section>
@@ -175,7 +190,7 @@ const scale = Math.min(64 / img.width, 64 / img.height);
       <div class="container" style="padding-top:20px">
         <div class="auth-tabs" style="margin-bottom:16px">
           <button class="auth-tab active" id="view-tab-kamper" onclick="setTippingView('kamper')">Kamper</button>
-          <button class="auth-tab" id="view-tab-priser" onclick="setTippingView('priser')">Priser</button>
+          <button class="auth-tab" id="view-tab-priser" onclick="setTippingView('priser')">Kåringer</button>
         </div>
 
         <div id="tipping-kamper-view">
@@ -201,11 +216,11 @@ const scale = Math.min(64 / img.width, 64 / img.height);
     <button class="nav-btn active" data-page="dashboard">
       <i data-lucide="table-2"></i><span>Tabell</span>
     </button>
+    <button class="nav-btn" data-page="tipping">
+      <i data-lucide="target"></i><span>Spå</span>
+    </button>
     <button class="nav-btn" data-page="oversikt">
       <i data-lucide="layout-grid"></i><span>Oversikt</span>
-    </button>
-    <button class="nav-btn" data-page="tipping">
-      <i data-lucide="target"></i><span>Tipp</span>
     </button>
   </nav>
 </div>

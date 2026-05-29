@@ -90,8 +90,7 @@ function setupAdminTabs() {
       document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       showAdminSection('admin-' + tab.dataset.section);
-      if (tab.dataset.section === 'priser')  loadAdminAwards();
-      if (tab.dataset.section === 'brukere') loadAdminStats();
+      if (tab.dataset.section === 'priser') loadAdminAwards();
     });
   });
   showAdminSection('admin-kamper');

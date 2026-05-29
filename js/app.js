@@ -18,6 +18,8 @@ const State = {
   currentStage: 'group',
   currentGroup: 'A',
   currentTippingView: 'kamper',
+  viewingUser: null,
+  thirdTiebreaker: null,
 };
 
 // ============================================================
@@ -146,6 +148,8 @@ function switchAuthTab(tab) {
   document.getElementById('register-form').classList.toggle('hidden', tab !== 'register');
   document.getElementById('tab-login').classList.toggle('active', tab === 'login');
   document.getElementById('tab-register').classList.toggle('active', tab !== 'login');
+  const authTabsEl = document.querySelector('#page-auth .auth-tabs');
+  if (authTabsEl) authTabsEl.classList.toggle('tab-right', tab !== 'login');
   clearPin('login');
   clearPin('register');
 }
@@ -157,9 +161,16 @@ function buildPinPad(containerId, prefix, onConfirm) {
     let cls = 'pin-key';
     if (k === '⌫') cls += ' del';
     if (k === '✓') cls += ' confirm';
-    const action = k === '⌫' ? 'del' : k === '✓' ? 'confirm' : k;
-    return `<button type="button" class="${cls}" onclick="pinKey('${prefix}','${action}')">${k}</button>`;
+    return `<button type="button" class="${cls}">${k}</button>`;
   }).join('');
+  container.querySelectorAll('.pin-key').forEach((btn, i) => {
+    const action = keys[i] === '⌫' ? 'del' : keys[i] === '✓' ? 'confirm' : keys[i];
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      pinKey(prefix, action);
+    }, { passive: false });
+    btn.addEventListener('click', () => pinKey(prefix, action));
+  });
 }
 
 const pins = { login: '', register: '' };
@@ -274,15 +285,31 @@ async function loadMyPredictions()  { const { data } = await db.from('prediction
 async function loadAllPredictions() { const { data } = await db.from('predictions').select('*'); State.allPredictions = data || []; }
 async function loadUsers()    { const { data } = await db.from('app_users').select('id, username, created_at'); State.allUsers = data || []; }
 async function loadAwardResults()   { const { data } = await db.from('award_results').select('*').single(); State.awardResults = data || null; }
-async function loadAwardPredictions() { const { data } = await db.from('award_predictions').select('*'); State.awardPredictions = data || []; }
+async function loadAwardPredictions() {
+  const { data } = await db.from('award_predictions').select('*');
+  State.awardPredictions = data || [];
+  const mine = data?.find(a => a.user_id === State.user.id);
+  State.thirdTiebreaker = null;
+  if (mine?.third_tiebreaker) {
+    try { State.thirdTiebreaker = JSON.parse(mine.third_tiebreaker); } catch {}
+  }
+}
 
 // ============================================================
 // NAVIGATION
 // ============================================================
 function setupNav() {
   document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => navigateTo(btn.dataset.page));
+    btn.addEventListener('click', () => {
+      if (btn.dataset.page !== 'oversikt') State.viewingUser = null;
+      navigateTo(btn.dataset.page);
+    });
   });
+}
+
+function viewPlayerOverview(userId) {
+  State.viewingUser = State.allUsers.find(u => String(u.id) === String(userId)) || null;
+  navigateTo('oversikt');
 }
 
 function navigateTo(page) {
@@ -303,9 +330,18 @@ function renderDashboard() {
   const me = lb.find(r => r.user.id === State.user.id) || { total:0, correct:0, exact:0, predictions:0 };
   const myRank = lb.indexOf(me) + 1;
 
-  document.getElementById('dash-rank').textContent  = myRank ? `#${myRank}` : '–';
-  document.getElementById('dash-pts').textContent   = me.total;
+  const rankEl = document.getElementById('dash-rank');
+  const ptsEl  = document.getElementById('dash-pts');
+  rankEl.textContent = myRank ? `#${myRank}` : '–';
+  ptsEl.textContent  = me.total;
   document.getElementById('dash-exact').textContent = me.exact;
+  const exactEl = document.getElementById('dash-exact');
+  ['rank-1','rank-2','rank-3'].forEach(c => { rankEl.classList.remove(c); ptsEl.classList.remove(c); exactEl.classList.remove(c); });
+  if (myRank >= 1 && myRank <= 3) {
+    rankEl.classList.add('rank-' + myRank);
+    ptsEl.classList.add('rank-' + myRank);
+    exactEl.classList.add('rank-' + myRank);
+  }
 
   const playedEl = document.getElementById('dash-played');
   if (playedEl) playedEl.textContent = `${State.matches.filter(m => m.is_played).length} kamper spilt`;
@@ -314,21 +350,20 @@ function renderDashboard() {
   const ddEl = document.getElementById('dash-deadline');
   if (ddEl) {
     const txt = deadlineText();
-    ddEl.innerHTML = txt
-      ? `<div class="alert alert-info" style="margin-bottom:16px">Tippefrist 7. juni kl. 20:00 – <strong>${esc(txt)}</strong></div>`
-      : (deadlinePassed() ? `<div class="alert alert-warning" style="margin-bottom:16px">Tipping er stengt. Kun visning.</div>` : '');
+    ddEl.innerHTML = deadlinePassed()
+      ? `<div class="alert alert-warning" style="margin-bottom:16px;font-size:0.72rem;text-align:center">Spådom er stengt. Kun visning.</div>`
+      : `<div class="alert alert-info" style="margin-bottom:16px;font-size:0.72rem;text-align:center">Spådomsfrist 7. juni kl. 20:00${txt ? `<br><span style="opacity:0.75">${esc(txt)}</span>` : ''}</div>`;
   }
 
   // Full leaderboard
   document.getElementById('dash-leaderboard').innerHTML = lb.map((row, i) => {
     const meCls = row.user.id === State.user.id ? ' me' : '';
-    return `<div class="lb-row${meCls}">
+    return `<div class="lb-row${meCls}" style="cursor:pointer" onclick="viewPlayerOverview('${row.user.id}')">
       <div class="lb-rank ${i < 3 ? 'rank-'+(i+1) : ''}">${i+1}</div>
       <div class="lb-name">${esc(row.user.username)}${row.user.id === State.user.id ? ' <span style="color:var(--gold);font-size:0.75rem">(deg)</span>' : ''}</div>
-      <div class="lb-pts">${row.total}</div>
-      <div class="lb-cell">${row.exact}</div>
-      <div class="lb-cell">${row.correct}</div>
-      <div class="lb-cell lb-col-pred">${row.predictions}</div>
+      <div class="lb-cell">${row.outcomePts}</div>
+      <div class="lb-cell">${row.exactPts}</div>
+      <div class="lb-pts${i < 3 ? ' rank-'+(i+1) : ''}">${row.total}</div>
     </div>`;
   }).join('');
 }
@@ -339,6 +374,8 @@ function renderDashboard() {
 function renderTipping() {
   document.getElementById('view-tab-kamper').classList.toggle('active', State.currentTippingView === 'kamper');
   document.getElementById('view-tab-priser').classList.toggle('active', State.currentTippingView === 'priser');
+  const tippingTabsEl = document.querySelector('#section-tipping .auth-tabs');
+  if (tippingTabsEl) tippingTabsEl.classList.toggle('tab-right', State.currentTippingView !== 'kamper');
   document.getElementById('tipping-kamper-view').classList.toggle('hidden', State.currentTippingView !== 'kamper');
   document.getElementById('tipping-priser-view').classList.toggle('hidden', State.currentTippingView !== 'priser');
 
@@ -364,14 +401,14 @@ function renderDeadlineBanner() {
   if (!el) return;
   const txt = deadlineText();
   if (txt) {
-    el.innerHTML = `<div class="alert alert-info">Tippefrist: 7. juni kl. 20:00 – <strong>${esc(txt)}</strong></div>`;
+    el.innerHTML = `<div class="alert alert-info" style="font-size:0.72rem;text-align:center">Spådomsfrist: 7. juni kl. 20:00<br><span style="opacity:0.75">${esc(txt)}</span></div>`;
   } else {
-    el.innerHTML = `<div class="alert alert-warning">Tipping er stengt. Du kan lese, men ikke endre tipsningene dine.</div>`;
+    el.innerHTML = `<div class="alert alert-warning">Spådom er stengt. Du kan lese, men ikke endre spådommene dine.</div>`;
   }
 }
 
 function setupStageTabs(stageEl, groupEl) {
-  const stages = ['group','r32','r16','qf','sf','3rd','final'];
+  const stages = ['group','thirds','r32','r16','qf','sf','3rd','final'];
   stageEl.innerHTML = stages.map(s =>
     `<button class="tab-btn${State.currentStage===s?' active':''}" onclick="setTippingStage('${s}')">${CONFIG.STAGE_NAMES[s]}</button>`
   ).join('');
@@ -379,7 +416,7 @@ function setupStageTabs(stageEl, groupEl) {
 }
 
 function renderGroupTabs(groupEl) {
-  if (State.currentStage !== 'group') { groupEl.innerHTML = ''; return; }
+  if (State.currentStage !== 'group') { groupEl.innerHTML = ''; return; }  // includes 'thirds'
   groupEl.innerHTML = 'ABCDEFGHIJKL'.split('').map(g =>
     `<button class="tab-btn${State.currentGroup===g?' active':''}" onclick="setTippingGroup('${g}')">${g}</button>`
   ).join('');
@@ -429,6 +466,12 @@ function attachGroupSwipe(el) {
 }
 
 function renderTippingList(listEl) {
+  if (State.currentStage === 'thirds') {
+    const bd = Bracket.build(State.predictions, State.teams, State.matches, State.thirdTiebreaker);
+    listEl.innerHTML = renderTiebreakerSection(bd.allThirds);
+    return;
+  }
+
   const canEdit = !deadlinePassed();
   let matches;
   let bracketData = null;
@@ -437,7 +480,7 @@ function renderTippingList(listEl) {
     matches = State.matches.filter(m => m.stage === 'group' && m.group_letter === State.currentGroup);
   } else {
     matches = State.matches.filter(m => m.stage === State.currentStage);
-    bracketData = Bracket.build(State.predictions, State.teams, State.matches);
+    bracketData = Bracket.build(State.predictions, State.teams, State.matches, State.thirdTiebreaker);
   }
 
   if (State.currentStage === 'group') attachGroupSwipe(listEl);
@@ -556,14 +599,22 @@ function bracketTeamName(team) {
 
 function renderOverview() {
   const overviewEl = document.getElementById('oversikt-content');
+  const titleEl    = document.getElementById('oversikt-title');
   if (!overviewEl) return;
 
-  if (State.predictions.length === 0) {
+  const viewer = State.viewingUser;
+  const preds  = viewer
+    ? State.allPredictions.filter(p => String(p.user_id) === String(viewer.id))
+    : State.predictions;
+
+  if (titleEl) titleEl.textContent = viewer ? `${viewer.username}s tipsinger` : 'Mine tipsinger';
+
+  if (preds.length === 0) {
     overviewEl.innerHTML = `<div class="empty-state"><p class="empty-title">Ingen tipsninger ennå</p><p>Tipp kampene i gruppespillet for å se oversikten.</p></div>`;
     return;
   }
 
-  const bracketData = Bracket.build(State.predictions, State.teams, State.matches);
+  const bracketData = Bracket.build(preds, State.teams, State.matches, viewer ? null : State.thirdTiebreaker);
 
   // Group predicted standings
   let html = '<div class="section-title" style="margin-bottom:10px">Gruppeprediksjoner</div>';
@@ -571,7 +622,7 @@ function renderOverview() {
   for (const g of 'ABCDEFGHIJKL'.split('')) {
     const standings = bracketData.allStandings[g];
     const groupMatches = State.matches.filter(m => m.stage === 'group' && m.group_letter === g);
-    const tippedCount = groupMatches.filter(m => State.predictions.find(p => p.match_id === m.id)).length;
+    const tippedCount = groupMatches.filter(m => preds.find(p => p.match_id === m.id)).length;
     const incomplete = tippedCount < groupMatches.length;
     html += `<div class="ov-group">
       <div class="ov-group-header">Gruppe ${g}</div>
@@ -586,7 +637,38 @@ function renderOverview() {
     </div>`;
   }
   html += '</div>';
-  html += '<p style="font-size:0.7rem;color:var(--text-muted);margin-bottom:20px"><span style="color:var(--green)">■</span> Videre &nbsp;·&nbsp; <span style="color:var(--yellow)">■</span> Mulig videre</p>';
+  html += '<p style="font-size:0.7rem;color:var(--text-muted);margin-bottom:16px"><span style="color:var(--green)">■</span> Videre &nbsp;·&nbsp; <span style="color:var(--yellow)">■</span> Mulig videre</p>';
+
+  // Best thirds section – same card/row style as group standings
+  html += '<div class="section-title" style="margin-bottom:10px">De beste treerne</div>';
+  html += '<div class="ov-thirds-card">';
+  html += `<div class="ov-thirds-header">
+    <span class="ov-thirds-rank">#</span>
+    <span class="ov-thirds-name">Lag</span>
+    <span class="ov-thirds-stat">Pts</span>
+    <span class="ov-thirds-stat">W</span>
+    <span class="ov-thirds-stat">D</span>
+    <span class="ov-thirds-stat">L</span>
+    <span class="ov-thirds-stat">GD</span>
+  </div>`;
+  bracketData.allThirds.forEach((t, i) => {
+    if (i === 8) html += '<div class="ov-thirds-cut"></div>';
+    const gd = t.gd > 0 ? `+${t.gd}` : `${t.gd ?? 0}`;
+    const gdCls = t.gd > 0 ? 'bt-gd-pos' : t.gd < 0 ? 'bt-gd-neg' : '';
+    html += `<div class="ov-thirds-row${i < 8 ? ' ov-thirds-advance' : ''}">
+      <span class="ov-thirds-rank">${i+1}</span>
+      <span class="ov-thirds-name">
+        ${t.team ? flagImg(t.team, 20, 'flag-xs flag-img') : ''}
+        <span>${esc(t.team ? (t.team.name_no || t.team.name) : '?')}</span>
+      </span>
+      <span class="ov-thirds-stat"><strong>${t.pts}</strong></span>
+      <span class="ov-thirds-stat">${t.w ?? 0}</span>
+      <span class="ov-thirds-stat">${t.d ?? 0}</span>
+      <span class="ov-thirds-stat">${t.l ?? 0}</span>
+      <span class="ov-thirds-stat ${gdCls}">${gd}</span>
+    </div>`;
+  });
+  html += '</div>';
 
   // Knockout bracket
   html += '<div class="section-title" style="margin-bottom:10px">Sluttspill</div>';
@@ -598,12 +680,13 @@ function renderOverview() {
 function renderBracketTree(bracketData) {
   const { predictedTeams, predictedWinner } = bracketData;
 
+  // Matches grouped into pairs that feed into the same next-round slot
   const rounds = [
-    { label: 'R32',    matches: [73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88] },
-    { label: 'R16',    matches: [89,90,91,92,93,94,95,96] },
-    { label: 'QF',     matches: [97,98,99,100] },
-    { label: 'SF',     matches: [101,102] },
-    { label: 'Finale', matches: [104] },
+    { label: '16-del', pairs: [[73,74],[75,76],[77,78],[79,80],[81,82],[83,84],[85,86],[87,88]] },
+    { label: '8-del',  pairs: [[89,90],[91,92],[93,94],[95,96]] },
+    { label: 'KF',     pairs: [[97,98],[99,100]] },
+    { label: 'SF',     pairs: [[101,102]] },
+    { label: 'Finale', pairs: [[104]] },
   ];
 
   const teamRow = (team, isWinner) => {
@@ -620,15 +703,20 @@ function renderBracketTree(bracketData) {
     html += `<div class="bracket-round">
       <div class="bracket-round-label">${round.label}</div>
       <div class="bracket-round-matches">`;
-    for (const num of round.matches) {
-      const slot    = predictedTeams[num] || {};
-      const winner  = predictedWinner ? predictedWinner[num] : null;
-      const homeWon = winner && slot.home && winner.id === slot.home.id;
-      const awayWon = winner && slot.away && winner.id === slot.away.id;
-      html += `<div class="bracket-match">
-        ${teamRow(slot.home, homeWon)}
-        ${teamRow(slot.away, awayWon)}
-      </div>`;
+    for (const pair of round.pairs) {
+      const linked = pair.length > 1;
+      html += `<div class="bracket-pair${linked ? ' bracket-pair-linked' : ''}">`;
+      for (const num of pair) {
+        const slot    = predictedTeams[num] || {};
+        const winner  = predictedWinner ? predictedWinner[num] : null;
+        const homeWon = winner && slot.home && winner.id === slot.home.id;
+        const awayWon = winner && slot.away && winner.id === slot.away.id;
+        html += `<div class="bracket-match">
+          ${teamRow(slot.home, homeWon)}
+          ${teamRow(slot.away, awayWon)}
+        </div>`;
+      }
+      html += '</div>';
     }
     html += '</div></div>';
   }
@@ -702,6 +790,85 @@ async function savePrediction(matchId, auto = false) {
 }
 
 // ============================================================
+// TIEBREAKER (tredjeplass-rekkefølge)
+// ============================================================
+
+async function saveTiebreaker(order) {
+  if (deadlinePassed()) return;
+  State.thirdTiebreaker = order;
+  const val = JSON.stringify(order);
+  const existing = State.awardPredictions.find(a => a.user_id === State.user.id);
+  if (existing) {
+    await db.from('award_predictions').update({ third_tiebreaker: val, updated_at: new Date().toISOString() }).eq('id', existing.id);
+    existing.third_tiebreaker = val;
+  } else {
+    const { data } = await db.from('award_predictions').insert([{ user_id: State.user.id, third_tiebreaker: val }]).select().single();
+    if (data) State.awardPredictions.push(data);
+  }
+}
+
+function moveTiebreaker(fromIdx, direction) {
+  if (deadlinePassed()) return;
+  const bd = Bracket.build(State.predictions, State.teams, State.matches, State.thirdTiebreaker);
+  const all = bd.allThirds;
+  const toIdx = fromIdx + direction;
+  if (toIdx < 0 || toIdx >= all.length) return;
+  const ids = all.map(t => t.team.id);
+  [ids[fromIdx], ids[toIdx]] = [ids[toIdx], ids[fromIdx]];
+  saveTiebreaker(ids);
+  renderTipping();
+}
+
+function renderTiebreakerSection(allThirds) {
+  if (!allThirds || allThirds.length === 0) return '';
+  const locked = deadlinePassed();
+  const isTied = (a, b) => a && b && Bracket.isTiedThird(a, b);
+
+  let html = `<div style="margin-bottom:24px">
+    <div class="section-title" style="margin-bottom:6px">Rekkefølge blant beste treere</div>
+    <p class="muted" style="font-size:0.75rem;margin-bottom:10px">De 8 øverste går videre til 16-delsfinalen. Flytt opp/ned lag som er helt like på alle kriterier.</p>
+    <div class="ov-thirds-card ov-thirds-tb">
+      <div class="ov-thirds-header">
+        <span class="ov-thirds-rank">#</span>
+        <span class="ov-thirds-name">Lag</span>
+        <span class="ov-thirds-stat">Pts</span>
+        <span class="ov-thirds-stat">W</span>
+        <span class="ov-thirds-stat">D</span>
+        <span class="ov-thirds-stat">L</span>
+        <span class="ov-thirds-stat">GD</span>
+        <span></span>
+      </div>`;
+
+  allThirds.forEach((t, i) => {
+    const prevTied = i > 0 && isTied(allThirds[i - 1], t);
+    const nextTied = i < allThirds.length - 1 && isTied(t, allThirds[i + 1]);
+    const inTie = prevTied || nextTied;
+    if (i === 8) html += '<div class="ov-thirds-cut"></div>';
+    const gd = (t.gd >= 0 ? '+' : '') + (t.gd ?? 0);
+    const gdCls = t.gd > 0 ? 'bt-gd-pos' : t.gd < 0 ? 'bt-gd-neg' : '';
+    html += `<div class="ov-thirds-row${i < 8 ? ' ov-thirds-advance' : ''}${inTie ? ' ov-thirds-tied' : ''}">
+      <span class="ov-thirds-rank">${i + 1}</span>
+      <span class="ov-thirds-name">
+        ${t.team ? flagImg(t.team, 20, 'flag-xs flag-img') : ''}
+        <span>${esc(t.team ? (t.team.name_no || t.team.name) : '?')}</span>
+      </span>
+      <span class="ov-thirds-stat"><strong>${t.pts}</strong></span>
+      <span class="ov-thirds-stat">${t.w ?? 0}</span>
+      <span class="ov-thirds-stat">${t.d ?? 0}</span>
+      <span class="ov-thirds-stat">${t.l ?? 0}</span>
+      <span class="ov-thirds-stat ${gdCls}">${gd}</span>
+      <span class="ov-thirds-btns">${inTie && !locked
+        ? `<button class="tb-btn" onclick="moveTiebreaker(${i},-1)"${!prevTied  ? ' disabled' : ''}>▲</button>
+           <button class="tb-btn" onclick="moveTiebreaker(${i}, 1)"${!nextTied ? ' disabled' : ''}>▼</button>`
+        : ''}</span>
+    </div>`;
+  });
+
+  html += '</div></div>';
+  return html;
+}
+
+// ============================================================
 // AWARDS FORM (Priser tab)
 // ============================================================
 
@@ -709,30 +876,48 @@ function renderAwardsForm() {
   const userAward = State.awardPredictions.find(a => a.user_id === State.user.id) || {};
   const locked    = deadlinePassed();
   const el        = document.getElementById('awards-form');
-  const fields = [
-    ['best_player_1','Beste spiller (1.)'],['best_player_2','Beste spiller (2.)'],['best_player_3','Beste spiller (3.)'],
-    ['top_scorer_1', 'Toppscorer (1.)'],  ['top_scorer_2', 'Toppscorer (2.)'],  ['top_scorer_3', 'Toppscorer (3.)'],
+  const groups = [
+    {
+      title: 'Beste spiller',
+      fields: [
+        ['best_player_1','1. plass'],
+        ['best_player_2','2. plass'],
+        ['best_player_3','3. plass'],
+      ],
+    },
+    {
+      title: 'Toppscorer',
+      fields: [
+        ['top_scorer_1','1. plass'],
+        ['top_scorer_2','2. plass'],
+        ['top_scorer_3','3. plass'],
+      ],
+    },
   ];
+
+  const fieldsHtml = (readOnly) => groups.map(g => `
+    <div class="section-title" style="margin:18px 0 10px">${esc(g.title)}</div>
+    ${g.fields.map(([key, label]) => `
+      <div class="form-group">
+        <label>${esc(label)}</label>
+        ${readOnly
+          ? `<div class="form-input" style="opacity:0.7;cursor:default">${esc(userAward[key] || '–')}</div>`
+          : `<input type="text" class="form-input" id="award-${key}" value="${esc(userAward[key] || '')}" placeholder="Fullt navn..." ${State.awardResults?.[key] ? 'disabled' : ''}>`
+        }
+      </div>`).join('')}
+  `).join('');
 
   if (locked) {
     el.innerHTML = `
-      <p class="muted mb-16" style="font-size:0.85rem">Tippefrist passert – prediksjonene er låst.</p>
-      ${fields.map(([key, label]) => `
-        <div class="form-group">
-          <label>${esc(label)}</label>
-          <div class="form-input" style="opacity:0.7;cursor:default">${esc(userAward[key] || '–')}</div>
-        </div>`).join('')}`;
+      <p class="muted" style="font-size:0.85rem;margin-bottom:4px">Tippefrist passert – prediksjonene er låst.</p>
+      ${fieldsHtml(true)}`;
     return;
   }
 
   el.innerHTML = `
-    <p class="muted mb-16" style="font-size:0.85rem">Skriv fullt navn uten spesialtegn – f.eks. Kylian Mbappe</p>
-    ${fields.map(([key, label]) => `
-      <div class="form-group">
-        <label>${esc(label)}</label>
-        <input type="text" class="form-input" id="award-${key}" value="${esc(userAward[key] || '')}" placeholder="Fullt navn..." ${State.awardResults?.[key] ? 'disabled' : ''}>
-      </div>`).join('')}
-    <button class="btn btn-gold btn-full" onclick="saveAwards()">Lagre prisprediksjon</button>
+    <p class="muted" style="font-size:0.85rem;margin-bottom:4px">Skriv fullt navn uten spesialtegn – f.eks. Erling Haaland</p>
+    ${fieldsHtml(false)}
+    <button class="btn btn-gold btn-full" style="margin-top:8px" onclick="saveAwards()">Lagre prisprediksjon</button>
     <div id="awards-msg" class="mt-8 hidden"></div>`;
 }
 
