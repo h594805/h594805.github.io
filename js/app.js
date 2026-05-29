@@ -333,31 +333,39 @@ function renderDashboard() {
   const me = lb.find(r => r.user.id === State.user.id) || { total:0, correct:0, exact:0, predictions:0 };
   const myRank = lb.indexOf(me) + 1;
 
-  const rankEl = document.getElementById('dash-rank');
-  const ptsEl  = document.getElementById('dash-pts');
-  rankEl.textContent = myRank ? `#${myRank}` : '–';
-  ptsEl.textContent  = me.total;
-  document.getElementById('dash-exact').textContent = me.exact;
+  const rankEl  = document.getElementById('dash-rank');
+  const ptsEl   = document.getElementById('dash-pts');
   const exactEl = document.getElementById('dash-exact');
-  ['rank-1','rank-2','rank-3'].forEach(c => { rankEl.classList.remove(c); ptsEl.classList.remove(c); exactEl.classList.remove(c); });
+  rankEl.textContent  = myRank ? `#${myRank}` : '–';
+  ptsEl.textContent   = me.total;
+  exactEl.textContent = me.exact;
+  const isLast = lb.length >= 4 && myRank === lb.length;
+  ['rank-1','rank-2','rank-3','rank-last'].forEach(c => { rankEl.classList.remove(c); ptsEl.classList.remove(c); exactEl.classList.remove(c); });
   if (myRank >= 1 && myRank <= 3) {
     rankEl.classList.add('rank-' + myRank);
     ptsEl.classList.add('rank-' + myRank);
     exactEl.classList.add('rank-' + myRank);
+  } else if (isLast) {
+    rankEl.classList.add('rank-last');
+    ptsEl.classList.add('rank-last');
+    exactEl.classList.add('rank-last');
   }
 
   const playedEl = document.getElementById('dash-played');
   if (playedEl) playedEl.textContent = `${State.matches.filter(m => m.is_played).length} kamper spilt`;
 
   // Full leaderboard
+  const showLast = lb.length >= 4;
   document.getElementById('dash-leaderboard').innerHTML = lb.map((row, i) => {
-    const meCls = row.user.id === State.user.id ? ' me' : '';
-    return `<div class="lb-row${meCls}" style="cursor:pointer" onclick="viewPlayerOverview('${row.user.id}')">
-      <div class="lb-rank ${i < 3 ? 'rank-'+(i+1) : ''}">${i+1}</div>
+    const meCls  = row.user.id === State.user.id ? ' me' : '';
+    const isRowLast = showLast && i === lb.length - 1;
+    const rankCls = i < 3 ? ' rank-'+(i+1) : isRowLast ? ' rank-last' : '';
+    return `<div class="lb-row${meCls}${isRowLast ? ' lb-last' : ''}" style="cursor:pointer" onclick="viewPlayerOverview('${row.user.id}')">
+      <div class="lb-rank${rankCls}">${i+1}</div>
       <div class="lb-name">${esc(row.user.username)}${row.user.id === State.user.id ? ' <span style="color:var(--gold);font-size:0.75rem">(deg)</span>' : ''}</div>
       <div class="lb-cell">${row.outcomePts}</div>
       <div class="lb-cell">${row.exactPts}</div>
-      <div class="lb-pts${i < 3 ? ' rank-'+(i+1) : ''}">${row.total}</div>
+      <div class="lb-pts${rankCls}">${row.total}</div>
     </div>`;
   }).join('');
 }

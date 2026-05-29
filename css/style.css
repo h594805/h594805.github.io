@@ -681,6 +681,9 @@ select.form-input { cursor: pointer; }
 .lb-row:last-child { border-bottom: none; }
 .lb-row:hover { background: var(--surface-3); }
 .lb-row.me    { background: rgba(184,134,11,0.05); }
+.lb-row.lb-last { background: rgba(192,0,16,0.04); }
+.lb-rank.rank-last { color: var(--red); }
+.lb-pts.rank-last  { color: var(--red); }
 
 .lb-rank {
   font-family: 'Barlow Condensed', sans-serif;
@@ -730,9 +733,10 @@ select.form-input { cursor: pointer; }
   line-height: 1;
 }
 .stat-value.stat-plain { font-weight: 700; font-size: 1.9rem; }
-.stat-value.rank-1 { color: #b8860b; font-weight: 900; }
-.stat-value.rank-2 { color: #8e8e93; font-weight: 900; }
-.stat-value.rank-3 { color: #a05c1a; font-weight: 900; }
+.stat-value.rank-1    { color: #b8860b; font-weight: 900; }
+.stat-value.rank-2    { color: #8e8e93; font-weight: 900; }
+.stat-value.rank-3    { color: #a05c1a; font-weight: 900; }
+.stat-value.rank-last { color: var(--red); font-weight: 900; }
 .stat-label {
   font-size: 0.7rem;
   color: var(--text-muted);
