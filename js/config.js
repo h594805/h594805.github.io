@@ -12,17 +12,20 @@ const CONFIG = {
   // Ingen nettstedspassord – hvem som helst med linken kan gå inn
   ADMIN_PASSWORD_HASH: '6d9ea5efaf7a7db5f966c4587ae0639d0fa12a80f658a69725df7411e6427fa8',
 
-  // Tippefrist: 7. juni 2026 kl. 20:00 norsk tid (CEST = UTC+2)
-  DEADLINE: new Date('2026-06-07T18:00:00Z'),
+  // Spådomsfrist: 7. juni 2026 kl. 21:00 norsk tid (CEST = UTC+2)
+  DEADLINE: new Date('2026-06-07T19:00:00Z'),
+
+  // Åpningskamp: 11. juni 2026 kl. 21:00 norsk tid (CEST = UTC+2)
+  FIRST_MATCH: new Date('2026-06-11T19:00:00Z'),
 
   // --- Poengsystem ---
   SCORING: {
     group: { outcome: 3, exact: 3  },
     r32:   { outcome: 3, exact: 4  },
     r16:   { outcome: 3, exact: 5  },
-    qf:    { outcome: 3, exact: 6  },
-    sf:    { outcome: 3, exact: 7  },
-    '3rd': { outcome: 3, exact: 8  },
+    qf:    { outcome: 4, exact: 6  },
+    sf:    { outcome: 4, exact: 7  },
+    '3rd': { outcome: 4, exact: 8  },
     final: { outcome: 5, exact: 10 },
   },
 

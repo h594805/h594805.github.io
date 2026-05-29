@@ -118,7 +118,12 @@ const scale = Math.min(64 / img.width, 64 / img.height);
 <div class="page" id="page-app">
   <!-- Header -->
   <header class="app-header">
-    <div class="header-logo"><img src="images/world-cup-trophy.png" alt="" class="header-trophy-img" style="width:14px;height:auto"> VM 2026</div>
+    <div class="header-logo">
+      <img src="images/world-cup-trophy.png" alt="" class="header-trophy-img" style="width:14px;height:auto">
+      <span>VM 2026</span>
+      <span id="header-first-match" class="header-sub"></span>
+    </div>
+    <span id="header-frist" class="header-frist"></span>
     <div class="header-user">
       <span class="user-badge" id="header-username">–</span>
       <button class="btn btn-ghost btn-sm" onclick="logout()" title="Logg ut" style="color:var(--red);padding:6px 8px"><i data-lucide="log-out" style="width:18px;height:18px;stroke-width:2"></i></button>
@@ -130,7 +135,6 @@ const scale = Math.min(64 / img.width, 64 / img.height);
     <!-- === DASHBOARD === -->
     <section class="app-section" id="section-dashboard">
       <div class="container" style="padding-top:20px">
-        <div id="dash-deadline"></div>
         <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
           <div class="stat-card"><div class="stat-value" id="dash-rank">–</div><div class="stat-label">Plass</div></div>
           <div class="stat-card"><div class="stat-value" id="dash-pts">0</div><div class="stat-label">Poeng</div></div>
@@ -160,14 +164,17 @@ const scale = Math.min(64 / img.width, 64 / img.height);
                 <tr><td>Gruppespill</td><td>3 p</td><td>+3 p</td></tr>
                 <tr><td>16-delsfinale</td><td>3 p</td><td>+4 p</td></tr>
                 <tr><td>8-delsfinale</td><td>3 p</td><td>+5 p</td></tr>
-                <tr><td>Kvartfinale</td><td>3 p</td><td>+6 p</td></tr>
-                <tr><td>Semifinale</td><td>3 p</td><td>+7 p</td></tr>
-                <tr><td>Bronsefinale</td><td>3 p</td><td>+8 p</td></tr>
+                <tr><td>Kvartfinale</td><td>4 p</td><td>+6 p</td></tr>
+                <tr><td>Semifinale</td><td>4 p</td><td>+7 p</td></tr>
+                <tr><td>Bronsefinale</td><td>4 p</td><td>+8 p</td></tr>
                 <tr class="final-row"><td>Finale</td><td>5 p</td><td>+10 p</td></tr>
               </tbody>
             </table>
             <p class="scoring-note">
               <strong>Prisprediksjon:</strong> Riktig spiller, riktig plass = 10 p &nbsp;·&nbsp; Riktig spiller, feil plass (innen topp 3) = 5 p
+            </p>
+            <p class="scoring-note">
+              <strong>Sluttspill:</strong> Poeng gis kun hvis du har spådd riktige lag i den aktuelle kampen.
             </p>
             <p class="scoring-note">
               <strong>Ekstraomganger:</strong> AET-resultatet gjelder – straffespark teller ikke for poengberegningen.

@@ -276,6 +276,8 @@ async function startApp() {
 
   hideSplash();
   setupNav();
+  renderHeaderDeadline();
+  if (!deadlinePassed()) setInterval(renderHeaderDeadline, 60000);
   navigateTo('dashboard');
 }
 
@@ -326,7 +328,7 @@ function navigateTo(page) {
 // DASHBOARD
 // ============================================================
 function renderDashboard() {
-  const lb = Scoring.buildLeaderboard(State.allUsers, State.allPredictions, State.matches, State.awardPredictions, State.awardResults);
+  const lb = Scoring.buildLeaderboard(State.allUsers, State.allPredictions, State.matches, State.teams, State.awardPredictions, State.awardResults);
   const me = lb.find(r => r.user.id === State.user.id) || { total:0, correct:0, exact:0, predictions:0 };
   const myRank = lb.indexOf(me) + 1;
 
@@ -345,15 +347,6 @@ function renderDashboard() {
 
   const playedEl = document.getElementById('dash-played');
   if (playedEl) playedEl.textContent = `${State.matches.filter(m => m.is_played).length} kamper spilt`;
-
-  // Deadline notice
-  const ddEl = document.getElementById('dash-deadline');
-  if (ddEl) {
-    const txt = deadlineText();
-    ddEl.innerHTML = deadlinePassed()
-      ? `<div class="alert alert-warning" style="margin-bottom:16px;font-size:0.72rem;text-align:center">Spådom er stengt. Kun visning.</div>`
-      : `<div class="alert alert-info" style="margin-bottom:16px;font-size:0.72rem;text-align:center">Spådomsfrist 7. juni kl. 20:00${txt ? `<br><span style="opacity:0.75">${esc(txt)}</span>` : ''}</div>`;
-  }
 
   // Full leaderboard
   document.getElementById('dash-leaderboard').innerHTML = lb.map((row, i) => {
@@ -399,11 +392,38 @@ function setTippingView(view) {
 function renderDeadlineBanner() {
   const el = document.getElementById('deadline-banner');
   if (!el) return;
-  const txt = deadlineText();
-  if (txt) {
-    el.innerHTML = `<div class="alert alert-info" style="font-size:0.72rem;text-align:center">Spådomsfrist: 7. juni kl. 20:00<br><span style="opacity:0.75">${esc(txt)}</span></div>`;
-  } else {
-    el.innerHTML = `<div class="alert alert-warning">Spådom er stengt. Du kan lese, men ikke endre spådommene dine.</div>`;
+  el.innerHTML = deadlinePassed()
+    ? `<div class="alert alert-warning" style="margin-bottom:12px">Spådom er stengt. Du kan lese, men ikke endre spådommene dine.</div>`
+    : '';
+}
+
+function firstMatchText() {
+  const diff = CONFIG.FIRST_MATCH - new Date();
+  if (diff <= 0) return null;
+  const days = Math.floor(diff / 86400000);
+  const hrs  = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000)  / 60000);
+  if (days > 0) return `· ${days}d ${hrs}t til start`;
+  if (hrs  > 0) return `· ${hrs}t ${mins}m til start`;
+  return `· ${mins}m til start`;
+}
+
+function renderHeaderDeadline() {
+  const fristEl = document.getElementById('header-frist');
+  const startEl = document.getElementById('header-first-match');
+
+  if (fristEl) {
+    if (deadlinePassed()) {
+      fristEl.textContent = '';
+    } else {
+      const txt = deadlineText();
+      fristEl.textContent = txt ? `Frist: ${txt}` : '';
+    }
+  }
+
+  if (startEl) {
+    const txt = firstMatchText();
+    startEl.textContent = txt || '';
   }
 }
 

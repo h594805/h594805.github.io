@@ -51,15 +51,64 @@ function setupAdminEntry() {
 // ============================================================
 // LOAD DATA
 // ============================================================
+const MONTHS_ADMIN = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
+const DAYS_ADMIN   = ['søn','man','tir','ons','tor','fre','lør'];
+
 async function loadAdminData() {
   const [matchRes, teamRes] = await Promise.all([
-    adminDb.from('matches').select('*').order('match_number'),
+    adminDb.from('matches').select('*').order('match_date').order('match_number'),
     adminDb.from('teams').select('*').order('id'),
   ]);
   adminData.matches = matchRes.data || [];
   adminData.teams   = teamRes.data  || [];
-  renderAdminMatchList('group', 'A');
   setupAdminTabs();
+  buildDateTabs();
+}
+
+function buildDateTabs() {
+  const tabsEl = document.getElementById('admin-date-tabs');
+  if (!tabsEl) return;
+
+  // Collect unique calendar days (Norwegian local time)
+  const dayMap = new Map();
+  for (const m of adminData.matches) {
+    if (!m.match_date) continue;
+    const d = new Date(m.match_date);
+    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    if (!dayMap.has(key)) dayMap.set(key, d);
+  }
+  const days = [...dayMap.entries()].sort((a, b) => a[1] - b[1]);
+
+  // Pick default: today, or nearest future day, or first day
+  const nowKey = (() => { const n = new Date(); return `${n.getFullYear()}-${n.getMonth()}-${n.getDate()}`; })();
+  let defaultKey = dayMap.has(nowKey) ? nowKey : null;
+  if (!defaultKey) {
+    const now = new Date();
+    for (const [k, d] of days) { if (d >= now) { defaultKey = k; break; } }
+  }
+  if (!defaultKey && days.length) defaultKey = days[0][0];
+
+  tabsEl.innerHTML = days.map(([key, d]) => {
+    const label = `${DAYS_ADMIN[d.getDay()]} ${d.getDate()}. ${MONTHS_ADMIN[d.getMonth()]}`;
+    const isToday = key === nowKey;
+    return `<button class="admin-stage-tab${key === defaultKey ? ' active' : ''}" data-datekey="${key}" onclick="selectAdminDate('${key}')">${label}${isToday ? ' ★' : ''}</button>`;
+  }).join('');
+
+  if (defaultKey) {
+    renderAdminMatchList(defaultKey);
+    // Scroll active tab into view
+    setTimeout(() => {
+      const active = tabsEl.querySelector('.admin-stage-tab.active');
+      if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }, 100);
+  }
+}
+
+function selectAdminDate(key) {
+  document.querySelectorAll('#admin-date-tabs .admin-stage-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.datekey === key)
+  );
+  renderAdminMatchList(key);
 }
 
 function adminTeamById(id) { return adminData.teams.find(t => t.id === id) || null; }
@@ -94,32 +143,19 @@ function setupAdminTabs() {
     });
   });
   showAdminSection('admin-kamper');
-
-  document.querySelectorAll('.admin-stage-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.admin-stage-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const group = document.querySelector('.admin-group-tab.active')?.dataset.group || 'A';
-      renderAdminMatchList(tab.dataset.stage, group);
-    });
-  });
-  document.querySelectorAll('.admin-group-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.admin-group-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      renderAdminMatchList('group', tab.dataset.group);
-    });
-  });
 }
 
 // ============================================================
 // MATCH LIST
 // ============================================================
-function renderAdminMatchList(stage, group) {
+function renderAdminMatchList(dateKey) {
   const el = document.getElementById('admin-match-list');
-  const matches = stage === 'group'
-    ? adminData.matches.filter(m => m.stage === 'group' && m.group_letter === group)
-    : adminData.matches.filter(m => m.stage === stage);
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const matches = adminData.matches.filter(m => {
+    if (!m.match_date) return false;
+    const d = new Date(m.match_date);
+    return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+  }).sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
 
   if (!matches.length) {
     el.innerHTML = `<div class="empty-state"><p>Ingen kamper her ennå</p></div>`;

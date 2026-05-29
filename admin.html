@@ -109,32 +109,7 @@
 
     <!-- === KAMPER === -->
     <div id="admin-kamper" class="admin-section">
-
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
-        <button class="admin-stage-tab active" data-stage="group">Gruppe</button>
-        <button class="admin-stage-tab" data-stage="r32">R32</button>
-        <button class="admin-stage-tab" data-stage="r16">R16</button>
-        <button class="admin-stage-tab" data-stage="qf">Kvartfinale</button>
-        <button class="admin-stage-tab" data-stage="sf">Semifinale</button>
-        <button class="admin-stage-tab" data-stage="3rd">Bronsefinale</button>
-        <button class="admin-stage-tab" data-stage="final">Finale</button>
-      </div>
-
-      <div id="admin-group-tabs" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px">
-        <button class="admin-group-tab active" data-group="A">A</button>
-        <button class="admin-group-tab" data-group="B">B</button>
-        <button class="admin-group-tab" data-group="C">C</button>
-        <button class="admin-group-tab" data-group="D">D</button>
-        <button class="admin-group-tab" data-group="E">E</button>
-        <button class="admin-group-tab" data-group="F">F</button>
-        <button class="admin-group-tab" data-group="G">G</button>
-        <button class="admin-group-tab" data-group="H">H</button>
-        <button class="admin-group-tab" data-group="I">I</button>
-        <button class="admin-group-tab" data-group="J">J</button>
-        <button class="admin-group-tab" data-group="K">K</button>
-        <button class="admin-group-tab" data-group="L">L</button>
-      </div>
-
+      <div id="admin-date-tabs" style="display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;padding-bottom:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
       <div id="admin-match-list">
         <div class="loading-center"><span class="spinner"></span></div>
       </div>
@@ -170,15 +145,5 @@
 <script src="js/config.js"></script>
 <script src="js/scoring.js"></script>
 <script src="js/admin.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.admin-stage-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.getElementById('admin-group-tabs').style.display =
-          tab.dataset.stage === 'group' ? 'flex' : 'none';
-      });
-    });
-  });
-</script>
 </body>
 </html>

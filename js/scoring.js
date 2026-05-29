@@ -87,15 +87,37 @@ const Scoring = {
     return total;
   },
 
-  // Build leaderboard: [{user, matchPoints, awardPoints, total, correct, exact}]
-  buildLeaderboard(users, predictions, matches, awardPredictions, awardResults) {
+  // Build leaderboard: [{user, matchPoints, awardPoints, total, outcomePts, exactPts, exact}]
+  buildLeaderboard(users, predictions, matches, teams, awardPredictions, awardResults) {
+    // Build per-user tiebreaker map from award_predictions
+    const tiebreakerMap = {};
+    for (const ap of (awardPredictions || [])) {
+      if (ap.third_tiebreaker) {
+        try { tiebreakerMap[ap.user_id] = JSON.parse(ap.third_tiebreaker); } catch {}
+      }
+    }
+
     return users.map(user => {
       const userPreds = predictions.filter(p => p.user_id === user.id);
       let matchPoints = 0, outcomePts = 0, exactPts = 0, exactCount = 0;
 
+      // Build this user's predicted bracket once (for knockout team validation)
+      const bracketData = typeof Bracket !== 'undefined'
+        ? Bracket.build(userPreds, teams, matches, tiebreakerMap[user.id] || null)
+        : null;
+
       for (const pred of userPreds) {
         const match = matches.find(m => m.id === pred.match_id);
         if (!match || !match.is_played) continue;
+
+        // Knockout rounds: only award points if the user predicted the correct teams
+        if (match.stage !== 'group' && bracketData) {
+          const slot = bracketData.predictedTeams?.[match.match_number];
+          const homeOk = slot?.home?.id === match.home_team_id;
+          const awayOk = slot?.away?.id === match.away_team_id;
+          if (!homeOk || !awayOk) continue; // wrong teams predicted → 0 points
+        }
+
         const pts = this.calculate(pred.home_score_pred, pred.away_score_pred, match);
         if (pts === null || pts === 0) continue;
         matchPoints += pts;
