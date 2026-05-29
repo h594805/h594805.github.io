@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>VM 2026 - Rekegutta</title>
   <meta name="description" content="VM 2026 tipping for Rekegutta">
   <link rel="icon" id="favicon" type="image/png" href="images/2026_FIFA_World_Cup_emblem.svg.webp">
@@ -121,7 +121,7 @@ const scale = Math.min(64 / img.width, 64 / img.height);
     <div class="header-logo"><img src="images/world-cup-trophy.png" alt="" class="header-trophy-img" style="width:14px;height:auto"> VM 2026</div>
     <div class="header-user">
       <span class="user-badge" id="header-username">–</span>
-      <button class="btn btn-ghost btn-sm" onclick="logout()">Logg ut</button>
+      <button class="btn btn-ghost btn-sm" onclick="logout()" title="Logg ut" style="color:var(--red);padding:6px 8px"><i data-lucide="log-out" style="width:18px;height:18px;stroke-width:2"></i></button>
     </div>
   </header>
 

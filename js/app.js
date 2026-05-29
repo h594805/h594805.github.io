@@ -492,7 +492,7 @@ function renderTippingList(listEl) {
 
   let bracketNote = '';
   if (bracketData && State.currentStage !== 'group') {
-    bracketNote = `<div class="bracket-note">Lag vist basert på dine gruppe-tipsninger</div>`;
+    bracketNote = `<div class="bracket-note">Lag vist basert på dine gruppe-spådommer</div>`;
   }
 
   listEl.innerHTML = bracketNote + matches.map(m => {
@@ -539,7 +539,7 @@ function renderMatchCard(match, withInput, bracketHome = null, bracketAway = nul
       const pts    = Scoring.calculate(pred.home_score_pred, pred.away_score_pred, match);
       const ptsCls = pts === CONFIG.SCORING[match.stage]?.exact ? 'pts-exact' : pts > 0 ? 'pts-outcome' : 'pts-zero';
       predRowHTML = `<div class="pred-row-sm">
-        <span class="pred-label">Tippa: ${pred.home_score_pred}–${pred.away_score_pred}</span>
+        <span class="pred-label">Spådd: ${pred.home_score_pred}–${pred.away_score_pred}</span>
         <span class="pts-badge ${ptsCls}">${pts} poeng</span>
       </div>`;
     } else {
@@ -607,10 +607,10 @@ function renderOverview() {
     ? State.allPredictions.filter(p => String(p.user_id) === String(viewer.id))
     : State.predictions;
 
-  if (titleEl) titleEl.textContent = viewer ? `${viewer.username}s tipsinger` : 'Mine tipsinger';
+  if (titleEl) titleEl.textContent = viewer ? `${viewer.username}s spådommer` : 'Mine spådommer';
 
   if (preds.length === 0) {
-    overviewEl.innerHTML = `<div class="empty-state"><p class="empty-title">Ingen tipsninger ennå</p><p>Tipp kampene i gruppespillet for å se oversikten.</p></div>`;
+    overviewEl.innerHTML = `<div class="empty-state"><p class="empty-title">Ingen spådommer ennå</p><p>Spå kampene i gruppespillet for å se oversikten.</p></div>`;
     return;
   }
 
@@ -633,7 +633,7 @@ function renderOverview() {
           <span class="ov-name">${esc(r.team ? (r.team.name_no || r.team.name) : '?')}</span>
           <span class="ov-pts">${r.pts}p</span>
         </div>`).join('')}
-      ${incomplete ? `<div class="ov-incomplete">${tippedCount}/${groupMatches.length} tippet</div>` : ''}
+      ${incomplete ? `<div class="ov-incomplete">${tippedCount}/${groupMatches.length} spådd</div>` : ''}
     </div>`;
   }
   html += '</div>';
@@ -909,7 +909,7 @@ function renderAwardsForm() {
 
   if (locked) {
     el.innerHTML = `
-      <p class="muted" style="font-size:0.85rem;margin-bottom:4px">Tippefrist passert – prediksjonene er låst.</p>
+      <p class="muted" style="font-size:0.85rem;margin-bottom:4px">Spådomsfrist passert – spådommene er låst.</p>
       ${fieldsHtml(true)}`;
     return;
   }
