@@ -12,8 +12,7 @@ const CONFIG = {
   // Ingen nettstedspassord – hvem som helst med linken kan gå inn
   ADMIN_PASSWORD_HASH: '6d9ea5efaf7a7db5f966c4587ae0639d0fa12a80f658a69725df7411e6427fa8',
 
-  // Spådomsfrist: 7. juni 2026 kl. 21:00 norsk tid (CEST = UTC+2)
-  DEADLINE: new Date('2026-06-07T19:00:00Z'),
+  DEADLINE: new Date('2026-06-11T19:00:00Z'),
 
 
   // --- Poengsystem ---
