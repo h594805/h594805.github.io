@@ -242,9 +242,8 @@ async function saveInlineResult(matchId) {
 
   Object.assign(m, updates);
 
-  const activeStage = document.querySelector('.admin-stage-tab.active');
-  const activeGroup = document.querySelector('.admin-group-tab.active');
-  renderAdminMatchList(activeStage?.dataset.stage || 'group', activeGroup?.dataset.group || 'A');
+  const activeDateTab = document.querySelector('#admin-date-tabs .admin-stage-tab.active');
+  renderAdminMatchList(activeDateTab?.dataset.datekey);
 
   showAdminToast('Lagret!');
 }
@@ -273,11 +272,10 @@ async function resetMatch(matchId) {
 
   Object.assign(m, updates);
 
-  const activeStage = document.querySelector('.admin-stage-tab.active');
-  const activeGroup = document.querySelector('.admin-group-tab.active');
-  renderAdminMatchList(activeStage?.dataset.stage || 'group', activeGroup?.dataset.group || 'A');
+const activeDateTab = document.querySelector('#admin-date-tabs .admin-stage-tab.active');
+renderAdminMatchList(activeDateTab?.dataset.datekey);
 
-  showAdminToast('Kamp nullstilt!');
+showAdminToast('Kamp nullstilt!');
 }
 
 // ============================================================
