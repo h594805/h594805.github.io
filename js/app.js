@@ -284,7 +284,34 @@ async function startApp() {
 async function loadTeams()    { const { data } = await db.from('teams').select('*').order('group_letter').order('id'); State.teams = data || []; }
 async function loadMatches()  { const { data } = await db.from('matches').select('*').order('match_number'); State.matches = data || []; }
 async function loadMyPredictions()  { const { data } = await db.from('predictions').select('*').eq('user_id', State.user.id); State.predictions = data || []; }
-async function loadAllPredictions() { const { data } = await db.from('predictions').select('*'); State.allPredictions = data || []; }
+async function loadAllPredictions() {
+  const pageSize = 1000;
+  let from = 0;
+  let all = [];
+
+  while (true) {
+    const { data, error } = await db
+      .from('predictions')
+      .select('*')
+      .order('id')
+      .range(from, from + pageSize - 1);
+
+    if (error) {
+      console.error('Failed to load all predictions:', error);
+      break;
+    }
+
+    if (!data || data.length === 0) break;
+
+    all = all.concat(data);
+
+    if (data.length < pageSize) break;
+
+    from += pageSize;
+  }
+
+  State.allPredictions = all;
+}
 async function loadUsers()    { const { data } = await db.from('app_users').select('id, username, created_at'); State.allUsers = data || []; }
 async function loadAwardResults()   { const { data } = await db.from('award_results').select('*').single(); State.awardResults = data || null; }
 async function loadAwardPredictions() {
