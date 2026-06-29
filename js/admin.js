@@ -117,6 +117,143 @@ function adminTeamName(id, slotDesc) {
   return t ? (t.name_no || t.name) : (slotDesc || 'TBD');
 }
 
+// ============================================================
+// ACTUAL TEAM RESOLUTION (knockout matches)
+// ============================================================
+
+const ADMIN_R32_SLOTS = {
+  73: ['2A','2B'], 74: ['1E','3T'], 75: ['1F','2C'], 76: ['1C','2F'],
+  77: ['1I','3T'], 78: ['2E','2I'], 79: ['1A','3T'], 80: ['1L','3T'],
+  81: ['1D','3T'], 82: ['1G','3T'], 83: ['2K','2L'], 84: ['1H','2J'],
+  85: ['1B','3T'], 86: ['1J','2H'], 87: ['1K','3T'], 88: ['2D','2G'],
+};
+
+const ADMIN_FEEDERS = {
+  89:[74,77], 90:[73,75], 91:[76,78], 92:[79,80],
+  93:[83,84], 94:[81,82], 95:[86,88], 96:[85,87],
+  97:[89,90], 98:[93,94], 99:[91,92], 100:[95,96],
+  101:[97,98], 102:[99,100],
+  103:[101,102], 104:[101,102],
+};
+
+let adminResolvedTeams = null;
+
+function adminCalcActualGroupStandings(groupLetter) {
+  const groupTeams   = adminData.teams.filter(t => t.group_letter === groupLetter);
+  const groupMatches = adminData.matches.filter(m => m.stage === 'group' && m.group_letter === groupLetter && m.is_played);
+  const tbl = {};
+  for (const t of groupTeams) tbl[t.id] = { team: t, pts: 0, gf: 0, ga: 0, gd: 0, w: 0, d: 0, l: 0 };
+  for (const m of groupMatches) {
+    if (m.home_score == null || m.away_score == null) continue;
+    const h = m.home_score, a = m.away_score;
+    if (tbl[m.home_team_id]) { tbl[m.home_team_id].gf += h; tbl[m.home_team_id].ga += a; tbl[m.home_team_id].gd += h - a; }
+    if (tbl[m.away_team_id]) { tbl[m.away_team_id].gf += a; tbl[m.away_team_id].ga += h; tbl[m.away_team_id].gd += a - h; }
+    if (h > a) {
+      if (tbl[m.home_team_id]) { tbl[m.home_team_id].pts += 3; tbl[m.home_team_id].w++; }
+      if (tbl[m.away_team_id]) tbl[m.away_team_id].l++;
+    } else if (h < a) {
+      if (tbl[m.away_team_id]) { tbl[m.away_team_id].pts += 3; tbl[m.away_team_id].w++; }
+      if (tbl[m.home_team_id]) tbl[m.home_team_id].l++;
+    } else {
+      if (tbl[m.home_team_id]) { tbl[m.home_team_id].pts += 1; tbl[m.home_team_id].d++; }
+      if (tbl[m.away_team_id]) { tbl[m.away_team_id].pts += 1; tbl[m.away_team_id].d++; }
+    }
+  }
+  return Object.values(tbl).sort((a, b) =>
+    b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.team.name.localeCompare(b.team.name)
+  );
+}
+
+function adminBuildResolvedTeams() {
+  const allStandings = {};
+  for (const g of 'ABCDEFGHIJKL'.split('')) allStandings[g] = adminCalcActualGroupStandings(g);
+
+  // Best 8 third-place teams
+  const thirds = [];
+  for (const s of Object.values(allStandings)) if (s.length >= 3) thirds.push(s[2]);
+  thirds.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.team.name.localeCompare(b.team.name));
+  const best8Third = thirds.slice(0, 8);
+
+  // Assign third-place teams to their R32 slots using FIFA 2026 lookup table
+  const thirdSlot = {};
+  const qualKey = best8Third.map(t => t.team.group_letter).sort().join('');
+  const lookup = Bracket.THIRD_PLACE_LOOKUP[qualKey];
+  const thirdMatchSlots = Bracket.THIRD_MATCH_SLOTS;
+  if (lookup) {
+    lookup.forEach((grpCode, i) => {
+      const entry = best8Third.find(t => t.team.group_letter === grpCode[1]);
+      thirdSlot[thirdMatchSlots[i]] = entry ? entry.team : null;
+    });
+  } else {
+    thirdMatchSlots.forEach((mNum, i) => { thirdSlot[mNum] = i < best8Third.length ? best8Third[i].team : null; });
+  }
+
+  const matchByNum = {};
+  for (const m of adminData.matches) matchByNum[m.match_number] = m;
+
+  const resolved = {};
+
+  // Resolve R32 team slots
+  for (const [mNum, [hSlot, aSlot]] of Object.entries(ADMIN_R32_SLOTS)) {
+    const num = +mNum;
+    const resolveSlot = (slot) => {
+      if (slot === '3T') return thirdSlot[num] || null;
+      return allStandings[slot[1]]?.[+slot[0] - 1]?.team || null;
+    };
+    resolved[num] = { home: resolveSlot(hSlot), away: resolveSlot(aSlot) };
+  }
+
+  const actualWinner = {};
+  const getWinner = (num) => {
+    const m = matchByNum[num];
+    if (!m || !m.is_played) return null;
+    const slot = resolved[num];
+    if (!slot?.home || !slot?.away) return null;
+    const h = m.went_to_aet ? (m.home_score_aet ?? m.home_score) : m.home_score;
+    const a = m.went_to_aet ? (m.away_score_aet ?? m.away_score) : m.away_score;
+    if (h == null || a == null) return null;
+    if (h > a) return slot.home;
+    if (a > h) return slot.away;
+    if (m.went_to_penalties) {
+      if (m.home_penalties > m.away_penalties) return slot.home;
+      if (m.away_penalties > m.home_penalties) return slot.away;
+    }
+    return null;
+  };
+
+  // R32 winners
+  for (const num of [73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88]) {
+    actualWinner[num] = getWinner(num);
+  }
+
+  // R16 through SF
+  for (const num of [89,90,91,92,93,94,95,96,97,98,99,100,101,102]) {
+    const [fh, fa] = ADMIN_FEEDERS[num];
+    resolved[num] = { home: actualWinner[fh] || null, away: actualWinner[fa] || null };
+    actualWinner[num] = getWinner(num);
+  }
+
+  // 3rd place: losers of both SFs
+  const loserOf = (sfNum) => {
+    const slot = resolved[sfNum];
+    const winner = actualWinner[sfNum];
+    if (!slot || !winner) return null;
+    return winner === slot.home ? slot.away : slot.home;
+  };
+  resolved[103] = { home: loserOf(101), away: loserOf(102) };
+  actualWinner[103] = getWinner(103);
+
+  // Final: winners of both SFs
+  resolved[104] = { home: actualWinner[101] || null, away: actualWinner[102] || null };
+
+  return resolved;
+}
+
+function adminGetResolvedTeam(matchNum, side) {
+  if (!adminResolvedTeams) adminResolvedTeams = adminBuildResolvedTeams();
+  return adminResolvedTeams?.[matchNum]?.[side] || null;
+}
+
 function adminFlagImg(team) {
   if (!team) return '';
   return `<img src="https://flagcdn.com/w40/${team.country_code.toLowerCase()}.png"
@@ -165,10 +302,12 @@ function renderAdminMatchList(dateKey) {
 }
 
 function renderAdminMatchRow(m) {
-  const ht = adminTeamById(m.home_team_id);
-  const at = adminTeamById(m.away_team_id);
-  const homeName = adminTeamName(m.home_team_id, m.home_slot_desc);
-  const awayName = adminTeamName(m.away_team_id, m.away_slot_desc);
+  let ht = adminTeamById(m.home_team_id);
+  let at = adminTeamById(m.away_team_id);
+  if (!ht && m.stage !== 'group') ht = adminGetResolvedTeam(m.match_number, 'home');
+  if (!at && m.stage !== 'group') at = adminGetResolvedTeam(m.match_number, 'away');
+  const homeName = ht ? (ht.name_no || ht.name) : (m.home_slot_desc || 'TBD');
+  const awayName = at ? (at.name_no || at.name) : (m.away_slot_desc || 'TBD');
 
   const currentH = m.went_to_aet ? (m.home_score_aet ?? m.home_score ?? '') : (m.home_score ?? '');
   const currentA = m.went_to_aet ? (m.away_score_aet ?? m.away_score ?? '') : (m.away_score ?? '');
@@ -241,6 +380,7 @@ async function saveInlineResult(matchId) {
   if (error) { showAdminToast('Feil: ' + error.message); return; }
 
   Object.assign(m, updates);
+  adminResolvedTeams = null;
 
   const activeDateTab = document.querySelector('#admin-date-tabs .admin-stage-tab.active');
   renderAdminMatchList(activeDateTab?.dataset.datekey);
@@ -271,11 +411,12 @@ async function resetMatch(matchId) {
   if (error) { showAdminToast('Feil: ' + error.message); return; }
 
   Object.assign(m, updates);
+  adminResolvedTeams = null;
 
-const activeDateTab = document.querySelector('#admin-date-tabs .admin-stage-tab.active');
-renderAdminMatchList(activeDateTab?.dataset.datekey);
+  const activeDateTab = document.querySelector('#admin-date-tabs .admin-stage-tab.active');
+  renderAdminMatchList(activeDateTab?.dataset.datekey);
 
-showAdminToast('Kamp nullstilt!');
+  showAdminToast('Kamp nullstilt!');
 }
 
 // ============================================================
