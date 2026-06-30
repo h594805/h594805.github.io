@@ -693,4 +693,80 @@ const Bracket = {
 
     return { allStandings, best8Third, allThirds, predictedTeams, predictedWinner };
   },
+
+  // Build the ACTUAL resolved teams for every knockout match from real results.
+  // Used by scoring to check whether a user predicted the correct teams for a slot.
+  buildActualTeams(teams, matches) {
+    // Build group standings from actual played results
+    const fakePreds = matches
+      .filter(m => m.stage === 'group' && m.is_played)
+      .map(m => ({ match_id: m.id, home_score_pred: m.home_score, away_score_pred: m.away_score }));
+
+    const allStandings = {};
+    for (const g of this.GROUPS) allStandings[g] = this.calcGroupStandings(g, fakePreds, teams, matches);
+
+    const best8Third = this.getBest8Third(Object.values(allStandings));
+
+    const thirdSlot = {};
+    const qualKey = best8Third.map(t => t.team.group_letter).sort().join('');
+    const lookup = this.THIRD_PLACE_LOOKUP[qualKey];
+    if (lookup) {
+      lookup.forEach((grpCode, i) => {
+        const entry = best8Third.find(t => t.team.group_letter === grpCode[1]);
+        thirdSlot[this.THIRD_MATCH_SLOTS[i]] = entry ? entry.team : null;
+      });
+    } else {
+      this.THIRD_MATCH_SLOTS.forEach((mNum, i) => { thirdSlot[mNum] = i < best8Third.length ? best8Third[i].team : null; });
+    }
+
+    const actualTeams = {};
+    for (const [mNum, [hSlot, aSlot]] of Object.entries(this.R32_SLOTS)) {
+      const num = +mNum;
+      const resolve = (slot) => {
+        if (slot === '3T') return thirdSlot[num] || null;
+        return allStandings[slot[1]]?.[+slot[0] - 1]?.team || null;
+      };
+      actualTeams[num] = { home: resolve(hSlot), away: resolve(aSlot) };
+    }
+
+    const matchByNum = {};
+    for (const m of matches) matchByNum[m.match_number] = m;
+
+    const actualWinner = {};
+    const getWinner = (num) => {
+      const m = matchByNum[num];
+      if (!m || !m.is_played) return null;
+      const slot = actualTeams[num];
+      if (!slot?.home || !slot?.away) return null;
+      let h, a;
+      if (m.went_to_aet && m.home_score_aet != null) { h = m.home_score_aet; a = m.away_score_aet; }
+      else { h = m.home_score; a = m.away_score; }
+      if (h == null || a == null) return null;
+      if (h > a) return slot.home;
+      if (a > h) return slot.away;
+      if (m.went_to_penalties) {
+        if ((m.home_penalties ?? 0) > (m.away_penalties ?? 0)) return slot.home;
+        if ((m.away_penalties ?? 0) > (m.home_penalties ?? 0)) return slot.away;
+      }
+      return null;
+    };
+
+    for (const num of [73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88]) {
+      actualWinner[num] = getWinner(num);
+    }
+    for (const num of [89,90,91,92,93,94,95,96,97,98,99,100,101,102]) {
+      const [fh, fa] = this.FEEDERS[num];
+      actualTeams[num] = { home: actualWinner[fh] || null, away: actualWinner[fa] || null };
+      actualWinner[num] = getWinner(num);
+    }
+    const loserOf = (sfNum) => {
+      const slot = actualTeams[sfNum]; const winner = actualWinner[sfNum];
+      if (!slot || !winner) return null;
+      return winner.id === slot.home?.id ? slot.away : slot.home;
+    };
+    actualTeams[103] = { home: loserOf(101), away: loserOf(102) };
+    actualTeams[104] = { home: actualWinner[101] || null, away: actualWinner[102] || null };
+
+    return actualTeams;
+  },
 };

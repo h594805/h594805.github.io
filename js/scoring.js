@@ -29,12 +29,19 @@ const Scoring = {
       return pts.outcome + pts.exact;
     }
 
-    // Correct outcome (H/D/A based on effective result, NOT penalty result)
+    // Correct outcome (H/D/A based on effective result)
     const predSign   = Math.sign(predHome - predAway);
     const resultSign = Math.sign(resHome - resAway);
 
     if (predSign === resultSign) {
       return pts.outcome;
+    }
+
+    // For penalty shootouts: also award outcome points if the user predicted
+    // the correct winner (e.g. predicted 2-0 home win, actual 1-1 AET home wins penalties)
+    if (match.went_to_penalties && predSign !== 0) {
+      const penSign = Math.sign((match.home_penalties ?? 0) - (match.away_penalties ?? 0));
+      if (penSign !== 0 && predSign === penSign) return pts.outcome;
     }
 
     return 0;
@@ -97,6 +104,11 @@ const Scoring = {
       }
     }
 
+    // Resolve the actual teams for every knockout slot once (group results → bracket)
+    const actualTeams = typeof Bracket !== 'undefined' && Bracket.buildActualTeams
+      ? Bracket.buildActualTeams(teams, matches)
+      : null;
+
     return users.map(user => {
       const userPreds = predictions.filter(p => p.user_id === user.id);
       let matchPoints = 0, outcomePts = 0, exactPts = 0, exactCount = 0;
@@ -110,11 +122,20 @@ const Scoring = {
         const match = matches.find(m => m.id === pred.match_id);
         if (!match || !match.is_played) continue;
 
-        // Knockout rounds: only award points if the user predicted the correct teams
+        // Knockout rounds: only award points if the user predicted the correct teams.
+        // Compare user's predicted slot against actual resolved teams (not the DB's
+        // home_team_id, which is null for knockout matches determined by group results).
         if (match.stage !== 'group' && bracketData) {
-          const slot = bracketData.predictedTeams?.[match.match_number];
-          const homeOk = slot?.home?.id === match.home_team_id;
-          const awayOk = slot?.away?.id === match.away_team_id;
+          const userSlot   = bracketData.predictedTeams?.[match.match_number];
+          const actualSlot = actualTeams?.[match.match_number];
+          let homeOk, awayOk;
+          if (actualSlot?.home && actualSlot?.away) {
+            homeOk = userSlot?.home?.id === actualSlot.home.id;
+            awayOk = userSlot?.away?.id === actualSlot.away.id;
+          } else {
+            homeOk = userSlot?.home?.id === match.home_team_id;
+            awayOk = userSlot?.away?.id === match.away_team_id;
+          }
           if (!homeOk || !awayOk) continue; // wrong teams predicted → 0 points
         }
 

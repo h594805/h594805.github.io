@@ -311,10 +311,24 @@ function renderAdminMatchRow(m) {
 
   const currentH = m.went_to_aet ? (m.home_score_aet ?? m.home_score ?? '') : (m.home_score ?? '');
   const currentA = m.went_to_aet ? (m.away_score_aet ?? m.away_score ?? '') : (m.away_score ?? '');
+  const isKnockout = m.stage !== 'group';
+  const penHomeWon = m.went_to_penalties && (m.home_penalties ?? 0) > (m.away_penalties ?? 0);
+  const penAwayWon = m.went_to_penalties && (m.away_penalties ?? 0) > (m.home_penalties ?? 0);
 
   const playedBadge = m.is_played
-    ? `<span style="font-size:0.7rem;color:#22c55e;font-weight:700;white-space:nowrap">Spilt</span>`
+    ? `<span style="font-size:0.7rem;color:#22c55e;font-weight:700;white-space:nowrap">Spilt${m.went_to_penalties ? ' (str.)' : ''}</span>`
     : '';
+
+  const penWinnerRow = isKnockout ? `
+    <div id="pen-winner-${m.id}" style="display:${m.went_to_penalties ? 'flex' : 'none'};width:100%;padding:6px 0 2px;gap:8px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:0.8rem;color:var(--text-muted);white-space:nowrap">Straffespark-vinner:</span>
+      <button id="pen-home-${m.id}" class="btn btn-sm ${penHomeWon ? 'btn-gold' : 'btn-outline'}" onclick="selectPenWinner(${m.id},'home')" type="button" style="display:flex;align-items:center;gap:4px">
+        ${adminFlagImg(ht)}<span>${esc(homeName)}</span>
+      </button>
+      <button id="pen-away-${m.id}" class="btn btn-sm ${penAwayWon ? 'btn-gold' : 'btn-outline'}" onclick="selectPenWinner(${m.id},'away')" type="button" style="display:flex;align-items:center;gap:4px">
+        ${adminFlagImg(at)}<span>${esc(awayName)}</span>
+      </button>
+    </div>` : '';
 
   return `
     <div class="match-admin-row${m.is_played ? ' played' : ''}">
@@ -338,15 +352,22 @@ function renderAdminMatchRow(m) {
         ${adminFlagImg(at)}
       </div>
 
-      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap">
         <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;white-space:nowrap;color:var(--text-muted)">
           <input type="checkbox" id="aet-${m.id}" ${m.went_to_aet ? 'checked' : ''}
+            onchange="toggleAdminAet(${m.id})"
             style="accent-color:var(--gold);width:14px;height:14px"> AET
         </label>
+        ${isKnockout ? `<label id="pen-label-${m.id}" style="display:${m.went_to_aet ? 'flex' : 'none'};align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;white-space:nowrap;color:var(--text-muted)">
+          <input type="checkbox" id="pen-${m.id}" ${m.went_to_penalties ? 'checked' : ''}
+            onchange="toggleAdminPen(${m.id})"
+            style="accent-color:var(--gold);width:14px;height:14px"> Str.
+        </label>` : ''}
         ${playedBadge}
         <button class="btn btn-gold btn-sm" onclick="saveInlineResult(${m.id})">Lagre</button>
         ${m.is_played ? `<button class="btn btn-outline btn-sm" onclick="resetMatch(${m.id})" style="color:var(--red);border-color:var(--red)">Nullstill</button>` : ''}
       </div>
+      ${penWinnerRow}
     </div>`;
 }
 
@@ -366,13 +387,23 @@ async function saveInlineResult(matchId) {
   const h = parseInt(hs);
   const a = parseInt(as_);
 
+  const pen = m.stage !== 'group' && aet && (document.getElementById(`pen-${matchId}`)?.checked ?? false);
+  let penWinner = null;
+  if (pen) {
+    if (document.getElementById(`pen-home-${matchId}`)?.classList.contains('btn-gold')) penWinner = 'home';
+    else if (document.getElementById(`pen-away-${matchId}`)?.classList.contains('btn-gold')) penWinner = 'away';
+    if (!penWinner) { showAdminToast('Velg hvilke lag som vant på straffer'); return; }
+  }
+
   const updates = {
     home_score:        h,
     away_score:        a,
     went_to_aet:       aet,
     home_score_aet:    aet ? h : null,
     away_score_aet:    aet ? a : null,
-    went_to_penalties: false,
+    went_to_penalties: pen,
+    home_penalties:    pen ? (penWinner === 'home' ? 1 : 0) : null,
+    away_penalties:    pen ? (penWinner === 'away' ? 1 : 0) : null,
     is_played:         true,
   };
 
@@ -478,6 +509,34 @@ async function deleteUser(id, name) {
   if (error) { showAdminToast('Feil: ' + error.message); return; }
   showAdminToast(`"${name}" slettet.`);
   loadAdminStats();
+}
+
+// ============================================================
+// PENALTY WINNER UI
+// ============================================================
+function toggleAdminAet(matchId) {
+  const aetChecked = document.getElementById(`aet-${matchId}`)?.checked;
+  const penLabel = document.getElementById(`pen-label-${matchId}`);
+  if (penLabel) penLabel.style.display = aetChecked ? 'flex' : 'none';
+  if (!aetChecked) {
+    const penCb = document.getElementById(`pen-${matchId}`);
+    if (penCb) penCb.checked = false;
+    toggleAdminPen(matchId);
+  }
+}
+
+function toggleAdminPen(matchId) {
+  const penChecked = document.getElementById(`pen-${matchId}`)?.checked;
+  const winnerRow = document.getElementById(`pen-winner-${matchId}`);
+  if (winnerRow) winnerRow.style.display = penChecked ? 'flex' : 'none';
+}
+
+function selectPenWinner(matchId, side) {
+  ['home', 'away'].forEach(s => {
+    const btn = document.getElementById(`pen-${s}-${matchId}`);
+    if (!btn) return;
+    btn.className = `btn btn-sm ${s === side ? 'btn-gold' : 'btn-outline'}`;
+  });
 }
 
 // ============================================================

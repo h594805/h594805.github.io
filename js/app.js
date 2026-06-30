@@ -572,10 +572,15 @@ function renderMatchCard(match, withInput, bracketHome = null, bracketAway = nul
   if (played) {
     const h = match.went_to_aet ? match.home_score_aet : match.home_score;
     const a = match.went_to_aet ? match.away_score_aet : match.away_score;
+    let penWinnerName = '';
+    if (match.went_to_penalties) {
+      if ((match.home_penalties ?? 0) > (match.away_penalties ?? 0)) penWinnerName = homeName;
+      else if ((match.away_penalties ?? 0) > (match.home_penalties ?? 0)) penWinnerName = awayName;
+    }
     centerHTML = `<div class="match-score-center">
       <div class="score-display played">${h} – ${a}</div>
       ${match.went_to_aet     ? '<div style="font-size:0.6rem;color:var(--text-muted);margin-top:1px">e.o.</div>'     : ''}
-      ${match.went_to_penalties ? '<div style="font-size:0.6rem;color:var(--yellow);margin-top:1px">str.</div>' : ''}
+      ${match.went_to_penalties ? `<div style="font-size:0.6rem;color:var(--yellow);margin-top:1px">str. ${esc(penWinnerName)}</div>` : ''}
     </div>`;
     if (pred) {
       const pts    = Scoring.calculate(pred.home_score_pred, pred.away_score_pred, match);
