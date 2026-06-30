@@ -395,6 +395,17 @@ async function saveInlineResult(matchId) {
     if (!penWinner) { showAdminToast('Velg hvilke lag som vant på straffer'); return; }
   }
 
+  // For knockout matches, resolve and persist the actual team IDs so the
+  // front-end scoring check (slot.home.id === match.home_team_id) works correctly.
+  let resolvedHomeId = m.home_team_id;
+  let resolvedAwayId = m.away_team_id;
+  if (m.stage !== 'group') {
+    const ht = adminGetResolvedTeam(m.match_number, 'home');
+    const at = adminGetResolvedTeam(m.match_number, 'away');
+    if (ht?.id) resolvedHomeId = ht.id;
+    if (at?.id) resolvedAwayId = at.id;
+  }
+
   const updates = {
     home_score:        h,
     away_score:        a,
@@ -405,6 +416,8 @@ async function saveInlineResult(matchId) {
     home_penalties:    pen ? (penWinner === 'home' ? 1 : 0) : null,
     away_penalties:    pen ? (penWinner === 'away' ? 1 : 0) : null,
     is_played:         true,
+    home_team_id:      resolvedHomeId,
+    away_team_id:      resolvedAwayId,
   };
 
   const { error } = await adminDb.from('matches').update(updates).eq('id', matchId);
