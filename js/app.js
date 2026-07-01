@@ -583,7 +583,11 @@ function renderMatchCard(match, withInput, bracketHome = null, bracketAway = nul
       ${match.went_to_penalties ? `<div style="font-size:0.6rem;color:var(--yellow);margin-top:1px">str. ${esc(penWinnerName)}</div>` : ''}
     </div>`;
     if (pred) {
-      const pts    = Scoring.calculate(pred.home_score_pred, pred.away_score_pred, match);
+      let pts = Scoring.calculate(pred.home_score_pred, pred.away_score_pred, match);
+      // For knockout matches, only award points if the correct teams were predicted
+      if (pts > 0 && isKnockout && match.home_team_id) {
+        if (bracketHome?.id !== match.home_team_id || bracketAway?.id !== match.away_team_id) pts = 0;
+      }
       const ptsCls = pts === CONFIG.SCORING[match.stage]?.exact ? 'pts-exact' : pts > 0 ? 'pts-outcome' : 'pts-zero';
       const penNote = isKnockout && pred.home_score_pred === pred.away_score_pred && pred.penalty_winner_pred
         ? ` (str. ${pred.penalty_winner_pred === 'home' ? esc(homeName) : esc(awayName)})`
