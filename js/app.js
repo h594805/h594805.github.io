@@ -588,11 +588,30 @@ function renderMatchCard(match, withInput, bracketHome = null, bracketAway = nul
       if (pts > 0 && isKnockout && match.home_team_id) {
         if (bracketHome?.id !== match.home_team_id || bracketAway?.id !== match.away_team_id) pts = 0;
       }
-      const ptsCls = pts === CONFIG.SCORING[match.stage]?.exact ? 'pts-exact' : pts > 0 ? 'pts-outcome' : 'pts-zero';
+      const scoring = CONFIG.SCORING[match.stage];
+      const ptsCls = scoring && pts === scoring.outcome + scoring.exact ? 'pts-exact' : pts > 0 ? 'pts-outcome' : 'pts-zero';
       const penNote = isKnockout && pred.home_score_pred === pred.away_score_pred && pred.penalty_winner_pred
         ? ` (str. ${pred.penalty_winner_pred === 'home' ? esc(homeName) : esc(awayName)})`
         : '';
+
+      let predTeamsLine = '';
+      if (isKnockout && (bracketHome || bracketAway)) {
+        const predHName = bracketHome ? (bracketHome.name_no || bracketHome.name) : '?';
+        const predAName = bracketAway ? (bracketAway.name_no || bracketAway.name) : '?';
+        const homeMatch = bracketHome?.id === match.home_team_id;
+        const awayMatch = bracketAway?.id === match.away_team_id;
+        const hFlagSm = bracketHome ? flagImg(bracketHome, 20, 'flag-xs flag-img') : '';
+        const aFlagSm = bracketAway ? flagImg(bracketAway, 20, 'flag-xs flag-img') : '';
+        predTeamsLine = `<span class="pred-teams-line">
+          <span class="pred-teams-lbl">Spådde:</span>
+          <span class="pred-team-name${homeMatch ? '' : ' pred-team-wrong'}">${hFlagSm}${esc(predHName)}</span>
+          <span class="pred-teams-sep">–</span>
+          <span class="pred-team-name${awayMatch ? '' : ' pred-team-wrong'}">${aFlagSm}${esc(predAName)}</span>
+        </span>`;
+      }
+
       predRowHTML = `<div class="pred-row-sm">
+        ${predTeamsLine}
         <span class="pred-label">Spådd: ${pred.home_score_pred}–${pred.away_score_pred}${penNote}</span>
         <span class="pts-badge ${ptsCls}">${pts} poeng</span>
       </div>`;

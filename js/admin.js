@@ -309,8 +309,10 @@ function renderAdminMatchRow(m) {
   const homeName = ht ? (ht.name_no || ht.name) : (m.home_slot_desc || 'TBD');
   const awayName = at ? (at.name_no || at.name) : (m.away_slot_desc || 'TBD');
 
-  const currentH = m.went_to_aet ? (m.home_score_aet ?? m.home_score ?? '') : (m.home_score ?? '');
-  const currentA = m.went_to_aet ? (m.away_score_aet ?? m.away_score ?? '') : (m.away_score ?? '');
+  const current90H  = m.home_score     ?? '';
+  const current90A  = m.away_score     ?? '';
+  const currentAetH = m.home_score_aet ?? '';
+  const currentAetA = m.away_score_aet ?? '';
   const isKnockout = m.stage !== 'group';
   const penHomeWon = m.went_to_penalties && (m.home_penalties ?? 0) > (m.away_penalties ?? 0);
   const penAwayWon = m.went_to_penalties && (m.away_penalties ?? 0) > (m.home_penalties ?? 0);
@@ -339,12 +341,22 @@ function renderAdminMatchRow(m) {
         <span style="font-weight:700;font-size:0.88rem">${esc(homeName)}</span>
       </div>
 
-      <div class="admin-score-wrap">
-        <input type="number" id="hs-${m.id}" class="score-input" value="${currentH}"
-          min="0" max="30" inputmode="numeric" placeholder="–" style="width:46px">
-        <span style="color:var(--text-muted);font-weight:700">–</span>
-        <input type="number" id="as-${m.id}" class="score-input" value="${currentA}"
-          min="0" max="30" inputmode="numeric" placeholder="–" style="width:46px">
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+        <div class="admin-score-wrap">
+          <input type="number" id="hs-${m.id}" class="score-input" value="${current90H}"
+            min="0" max="30" inputmode="numeric" placeholder="–" style="width:46px">
+          <span style="color:var(--text-muted);font-weight:700">–</span>
+          <input type="number" id="as-${m.id}" class="score-input" value="${current90A}"
+            min="0" max="30" inputmode="numeric" placeholder="–" style="width:46px">
+        </div>
+        <div id="aet-score-row-${m.id}" style="display:${m.went_to_aet ? 'flex' : 'none'};align-items:center;gap:4px">
+          <span style="font-size:0.62rem;color:var(--text-muted);white-space:nowrap">e.o.:</span>
+          <input type="number" id="hs-aet-${m.id}" class="score-input" value="${currentAetH}"
+            min="0" max="30" inputmode="numeric" placeholder="–" style="width:46px">
+          <span style="color:var(--text-muted);font-weight:700">–</span>
+          <input type="number" id="as-aet-${m.id}" class="score-input" value="${currentAetA}"
+            min="0" max="30" inputmode="numeric" placeholder="–" style="width:46px">
+        </div>
       </div>
 
       <div class="admin-team away">
@@ -384,8 +396,17 @@ async function saveInlineResult(matchId) {
 
   if (hs === '' || as_ === '') { showAdminToast('Fyll inn begge scorene'); return; }
 
-  const h = parseInt(hs);
-  const a = parseInt(as_);
+  const h_90 = parseInt(hs);
+  const a_90 = parseInt(as_);
+
+  let h_aet = null, a_aet = null;
+  if (aet) {
+    const hsAet = document.getElementById(`hs-aet-${matchId}`)?.value ?? '';
+    const asAet = document.getElementById(`as-aet-${matchId}`)?.value ?? '';
+    if (hsAet === '' || asAet === '') { showAdminToast('Fyll inn AET-score (e.o.)'); return; }
+    h_aet = parseInt(hsAet);
+    a_aet = parseInt(asAet);
+  }
 
   const pen = m.stage !== 'group' && aet && (document.getElementById(`pen-${matchId}`)?.checked ?? false);
   let penWinner = null;
@@ -407,11 +428,11 @@ async function saveInlineResult(matchId) {
   }
 
   const updates = {
-    home_score:        h,
-    away_score:        a,
+    home_score:        h_90,
+    away_score:        a_90,
     went_to_aet:       aet,
-    home_score_aet:    aet ? h : null,
-    away_score_aet:    aet ? a : null,
+    home_score_aet:    aet ? h_aet : null,
+    away_score_aet:    aet ? a_aet : null,
     went_to_penalties: pen,
     home_penalties:    pen ? (penWinner === 'home' ? 1 : 0) : null,
     away_penalties:    pen ? (penWinner === 'away' ? 1 : 0) : null,
@@ -529,8 +550,10 @@ async function deleteUser(id, name) {
 // ============================================================
 function toggleAdminAet(matchId) {
   const aetChecked = document.getElementById(`aet-${matchId}`)?.checked;
-  const penLabel = document.getElementById(`pen-label-${matchId}`);
+  const penLabel   = document.getElementById(`pen-label-${matchId}`);
+  const aetRow     = document.getElementById(`aet-score-row-${matchId}`);
   if (penLabel) penLabel.style.display = aetChecked ? 'flex' : 'none';
+  if (aetRow)   aetRow.style.display   = aetChecked ? 'flex' : 'none';
   if (!aetChecked) {
     const penCb = document.getElementById(`pen-${matchId}`);
     if (penCb) penCb.checked = false;
