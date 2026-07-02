@@ -594,25 +594,26 @@ function renderMatchCard(match, withInput, bracketHome = null, bracketAway = nul
         ? ` (str. ${pred.penalty_winner_pred === 'home' ? esc(homeName) : esc(awayName)})`
         : '';
 
-      let predTeamsLine = '';
+      let predInner;
       if (isKnockout && (bracketHome || bracketAway)) {
         const predHName = bracketHome ? (bracketHome.name_no || bracketHome.name) : '?';
         const predAName = bracketAway ? (bracketAway.name_no || bracketAway.name) : '?';
         const homeMatch = bracketHome?.id === match.home_team_id;
         const awayMatch = bracketAway?.id === match.away_team_id;
-        const hFlagSm = bracketHome ? flagImg(bracketHome, 20, 'flag-xs flag-img') : '';
-        const aFlagSm = bracketAway ? flagImg(bracketAway, 20, 'flag-xs flag-img') : '';
-        predTeamsLine = `<span class="pred-teams-line">
-          <span class="pred-teams-lbl">Spådde:</span>
-          <span class="pred-team-name${homeMatch ? '' : ' pred-team-wrong'}">${hFlagSm}${esc(predHName)}</span>
-          <span class="pred-teams-sep">–</span>
-          <span class="pred-team-name${awayMatch ? '' : ' pred-team-wrong'}">${aFlagSm}${esc(predAName)}</span>
-        </span>`;
+        const hFlag = bracketHome ? flagImg(bracketHome, 20, 'flag-xs flag-img') : '';
+        const aFlag = bracketAway ? flagImg(bracketAway, 20, 'flag-xs flag-img') : '';
+        predInner = `
+          <span class="pred-label">Spådd:</span>
+          <span class="pred-team-name${homeMatch ? '' : ' pred-team-wrong'}">${hFlag}${esc(predHName)}</span>
+          <span class="pred-score-sm">${pred.home_score_pred}–${pred.away_score_pred}</span>
+          <span class="pred-team-name${awayMatch ? '' : ' pred-team-wrong'}">${aFlag}${esc(predAName)}</span>
+          ${penNote ? `<span class="pred-label">${penNote.trim()}</span>` : ''}`;
+      } else {
+        predInner = `<span class="pred-label">Spådd: ${pred.home_score_pred}–${pred.away_score_pred}${penNote}</span>`;
       }
 
       predRowHTML = `<div class="pred-row-sm">
-        ${predTeamsLine}
-        <span class="pred-label">Spådd: ${pred.home_score_pred}–${pred.away_score_pred}${penNote}</span>
+        ${predInner}
         <span class="pts-badge ${ptsCls}">${pts} poeng</span>
       </div>`;
     } else {
