@@ -5,7 +5,7 @@
 const Scoring = {
   // Calculate points for a single prediction against a played match.
   // Returns a number (0, outcome points, or exact points), or null if not played.
-  calculate(predHome, predAway, match) {
+  calculate(predHome, predAway, match, penWinnerPred = null) {
     if (!match.is_played) return null;
     if (predHome === null || predAway === null) return 0;
 
@@ -24,24 +24,41 @@ const Scoring = {
       resAway = match.away_score;
     }
 
-    // Exact score: outcome points + bonus
+    // Exact score: outcome points + bonus (scoreline only — penalties never
+    // factor into this comparison, per "AET-resultatet gjelder")
     if (predHome === resHome && predAway === resAway) {
       return pts.outcome + pts.exact;
     }
 
-    // Correct outcome (H/D/A based on effective result)
-    const predSign   = Math.sign(predHome - predAway);
-    const resultSign = Math.sign(resHome - resAway);
-
-    if (predSign === resultSign) {
-      return pts.outcome;
+    if (match.stage === 'group') {
+      // Group stage: a draw is a valid final outcome, so compare W/D/L sign.
+      const predSign   = Math.sign(predHome - predAway);
+      const resultSign = Math.sign(resHome - resAway);
+      return predSign === resultSign ? pts.outcome : 0;
     }
 
-    // For penalty shootouts: also award outcome points if the user predicted
-    // the correct winner (e.g. predicted 2-0 home win, actual 1-1 AET home wins penalties)
-    if (match.went_to_penalties && predSign !== 0) {
+    // Knockout: a draw can never be the actual final outcome — one team
+    // always goes through, either outright or on penalties. So "riktig
+    // utfall" means predicting the correct team to advance, not matching
+    // the sign of the scoreline.
+    let actualWinner = null;
+    if (resHome !== resAway) {
+      actualWinner = resHome > resAway ? 'home' : 'away';
+    } else if (match.went_to_penalties) {
       const penSign = Math.sign((match.home_penalties ?? 0) - (match.away_penalties ?? 0));
-      if (penSign !== 0 && predSign === penSign) return pts.outcome;
+      if (penSign > 0) actualWinner = 'home';
+      else if (penSign < 0) actualWinner = 'away';
+    }
+
+    let predictedWinner = null;
+    if (predHome !== predAway) {
+      predictedWinner = predHome > predAway ? 'home' : 'away';
+    } else if (penWinnerPred === 'home' || penWinnerPred === 'away') {
+      predictedWinner = penWinnerPred;
+    }
+
+    if (actualWinner && predictedWinner && actualWinner === predictedWinner) {
+      return pts.outcome;
     }
 
     return 0;
@@ -53,7 +70,7 @@ const Scoring = {
     for (const pred of predictions) {
       const match = matches.find(m => m.id === pred.match_id);
       if (!match) continue;
-      const pts = this.calculate(pred.home_score_pred, pred.away_score_pred, match);
+      const pts = this.calculate(pred.home_score_pred, pred.away_score_pred, match, pred.penalty_winner_pred);
       if (pts !== null) total += pts;
     }
     return total;
@@ -127,7 +144,7 @@ const Scoring = {
           if (!homeOk || !awayOk) continue; // wrong teams predicted → 0 points
         }
 
-        const pts = this.calculate(pred.home_score_pred, pred.away_score_pred, match);
+        const pts = this.calculate(pred.home_score_pred, pred.away_score_pred, match, pred.penalty_winner_pred);
         if (pts === null || pts === 0) continue;
         matchPoints += pts;
         const scoring = CONFIG.SCORING[match.stage];
