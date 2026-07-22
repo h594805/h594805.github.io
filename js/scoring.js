@@ -2,6 +2,29 @@
 // VM 2026 Tipping – Poengberegning
 // ============================================================
 
+// Normalize a name for comparison: trim, lowercase, strip accents (é → e).
+function normalizeName(s) {
+  return (s || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
+}
+
+// Two award-prediction values refer to the same player if they're equal once
+// accents are stripped, or if one is a subset of the other's words — this
+// lets a surname-only guess ("Mbappe") match a full name ("Kylian Mbappe").
+function namesMatch(a, b) {
+  const na = normalizeName(a);
+  const nb = normalizeName(b);
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  const wordsA = na.split(/\s+/);
+  const wordsB = nb.split(/\s+/);
+  const [shorter, longer] = wordsA.length <= wordsB.length ? [wordsA, wordsB] : [wordsB, wordsA];
+  return shorter.every(w => longer.includes(w));
+}
+
 const Scoring = {
   // Calculate points for a single prediction against a played match.
   // Returns a number (0, outcome points, or exact points), or null if not played.
@@ -89,19 +112,18 @@ const Scoring = {
     for (const group of fields) {
       for (let i = 0; i < group.length; i++) {
         const field = group[i];
-        const pred   = (userPred[field]       || '').trim().toLowerCase();
-        const actual = (actualResults[field]  || '').trim().toLowerCase();
+        const pred   = userPred[field];
+        const actual = actualResults[field];
         if (!pred || !actual) continue;
 
-        if (pred === actual) {
+        if (namesMatch(pred, actual)) {
           total += pts.exact;
           continue;
         }
-        // Check if the predicted player appears anywhere in the group (wrong position)
+        // Check if the predicted player appears anywhere else in the group (wrong position)
         for (let j = 0; j < group.length; j++) {
           if (j === i) continue;
-          const other = (actualResults[group[j]] || '').trim().toLowerCase();
-          if (pred === other) {
+          if (namesMatch(pred, actualResults[group[j]])) {
             total += pts.wrong_position;
             break;
           }
