@@ -2,49 +2,38 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>VM 2026 - Rekegutta</title>
-  <meta name="description" content="VM 2026 tipping for Rekegutta">
-  <link rel="icon" id="favicon" type="image/png" href="images/2026_FIFA_World_Cup_emblem.svg.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0">
+  <title>PL-Tipping – Rekegutta</title>
+  <meta name="description" content="Premier League tabelltipping for Rekegutta">
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+  <link rel="apple-touch-icon" href="images/favicon.svg">
   <meta name="theme-color" content="#f5f5f7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="PL-Tipping">
+  <meta name="format-detection" content="telephone=no">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://media.api-sports.io" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2">
-  <script>
-    (function() {
-      const img = new Image();
-      img.onload = function() {
-        const c = document.createElement('canvas');
-        c.width = c.height = 64;
-        const ctx = c.getContext('2d');
-const scale = Math.min(64 / img.width, 64 / img.height);
-        const w = img.width * scale, h = img.height * scale;
-        ctx.drawImage(img, (64 - w) / 2, (64 - h) / 2, w, h);
-        document.getElementById('favicon').href = c.toDataURL('image/png');
-      };
-      img.src = 'images/2026_FIFA_World_Cup_emblem.svg.webp';
-    })();
-  </script>
+  <link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
 
 <!-- Splash screen -->
 <div id="splash-screen">
-<img src="images/2026_FIFA_World_Cup_emblem.svg.webp" alt="FIFA World Cup 2026" id="splash-img">
+  <img src="images/ball.svg" alt="" id="splash-img">
 </div>
 <script>
 (function() {
-  var count = 22;
-  for (var i = 0; i < count; i++) {
+  for (var i = 0; i < 22; i++) {
     var s = document.createElement('span');
     s.textContent = '🦐';
     s.className = 'splash-shrimp';
-    var size = (1.4 + Math.random() * 1.8).toFixed(2);
-    var left = (4 + Math.random() * 92).toFixed(1);
-    var delay = (Math.random() * 1.8).toFixed(2);
-    var dur = (2.4 + Math.random() * 2).toFixed(2);
-    s.style.cssText = 'font-size:' + size + 'rem;left:' + left + '%;bottom:-60px;animation-delay:' + delay + 's;animation-duration:' + dur + 's;';
+    s.style.cssText = 'font-size:' + (1.4 + Math.random() * 1.8).toFixed(2) + 'rem;'
+      + 'left:' + (4 + Math.random() * 92).toFixed(1) + '%;bottom:-60px;'
+      + 'animation-delay:' + (Math.random() * 1.8).toFixed(2) + 's;'
+      + 'animation-duration:' + (2.4 + Math.random() * 2).toFixed(2) + 's;';
     s.addEventListener('animationend', function() { this.remove(); });
     document.body.appendChild(s);
   }
@@ -54,30 +43,29 @@ const scale = Math.min(64 / img.width, 64 / img.height);
 <div id="root">
 
 <!-- ======================================================
-     PAGE: AUTH (login / register)
+     PAGE: AUTH (logg inn / registrer)
      ====================================================== -->
 <div class="page" id="page-auth">
   <div class="full-screen">
-    <div class="wc-logo-area" style="margin-bottom:24px">
-      <span class="wc-trophy"><img src="images/world-cup-trophy.png" alt="VM-trofeet" class="wc-trophy-img" style="height:40px;width:auto"></span>
-      <div class="wc-title">
-        <span class="line1">VM 2026</span>
-        <span class="line2">TIPPING</span>
+    <div class="pl-logo-area">
+      <img src="images/ball.svg" alt="" class="pl-logo-img">
+      <div class="pl-title">
+        <span class="line1">PL-TIPPING</span>
+        <span class="line2" id="auth-season">2026/27</span>
       </div>
     </div>
     <div class="auth-box">
-      <!-- Tabs -->
       <div class="auth-tabs">
         <button class="auth-tab active" id="tab-login">Logg inn</button>
         <button class="auth-tab" id="tab-register">Registrer deg</button>
       </div>
 
-      <!-- Login form -->
+      <!-- Logg inn -->
       <div id="login-form">
         <div id="login-error" class="alert alert-error hidden"></div>
         <div class="form-group">
-          <label>Brukernavn</label>
-          <input type="text" id="login-username" class="form-input" placeholder="Ditt navn..." autocomplete="username">
+          <label for="login-username">Navn</label>
+          <input type="text" id="login-username" class="form-input" placeholder="Ditt navn..." autocomplete="username" autocapitalize="words">
         </div>
         <div class="form-group" style="text-align:center">
           <label>PIN-kode (4 siffer)</label>
@@ -89,15 +77,15 @@ const scale = Math.min(64 / img.width, 64 / img.height);
         </div>
       </div>
 
-      <!-- Register form -->
+      <!-- Registrer -->
       <div id="register-form" class="hidden">
         <div id="reg-error" class="alert alert-error hidden"></div>
         <div class="alert alert-info mb-16">
-          Velg et brukernavn (ditt navn) og en PIN-kode du husker. <strong>Husk PIN-koden!</strong>
+          Skriv navnet ditt og velg en PIN-kode. <strong>Husk PIN-koden!</strong>
         </div>
         <div class="form-group">
-          <label>Brukernavn (ditt navn)</label>
-          <input type="text" id="reg-username" class="form-input" placeholder="F.eks. Gard" autocomplete="username" maxlength="50">
+          <label for="reg-username">Navn</label>
+          <input type="text" id="reg-username" class="form-input" placeholder="F.eks. Gard" autocomplete="username" autocapitalize="words" maxlength="50">
         </div>
         <div class="form-group" style="text-align:center">
           <label>Velg PIN-kode (4 siffer)</label>
@@ -116,124 +104,142 @@ const scale = Math.min(64 / img.width, 64 / img.height);
      PAGE: APP
      ====================================================== -->
 <div class="page" id="page-app">
-  <!-- Header -->
   <header class="app-header">
     <div class="header-logo">
-      <img src="images/world-cup-trophy.png" alt="" class="header-trophy-img" style="width:14px;height:auto">
-      <span>VM 2026</span>
+      <img src="images/ball.svg" alt="" class="header-ball">
+      <span>PL <span id="header-season">26/27</span></span>
     </div>
     <span id="header-frist" class="header-frist"></span>
     <div class="header-user">
       <span class="user-badge" id="header-username">–</span>
-      <button class="btn btn-ghost btn-sm" onclick="logout()" title="Logg ut" style="color:var(--red);padding:6px 8px"><i data-lucide="log-out" style="width:18px;height:18px;stroke-width:2"></i></button>
+      <button class="btn btn-ghost btn-icon" onclick="logout()" title="Logg ut" aria-label="Logg ut">
+        <i data-lucide="log-out"></i>
+      </button>
     </div>
   </header>
 
   <main class="app-content">
 
-    <!-- === DASHBOARD === -->
+    <!-- === TABELL === -->
     <section class="app-section" id="section-dashboard">
-      <div class="container" style="padding-top:20px">
-        <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+      <div class="container pad-top">
+        <div class="stat-grid stat-grid-3">
           <div class="stat-card"><div class="stat-value" id="dash-rank">–</div><div class="stat-label">Plass</div></div>
-          <div class="stat-card"><div class="stat-value" id="dash-pts">0</div><div class="stat-label">Poeng</div></div>
-          <div class="stat-card"><div class="stat-value stat-plain" id="dash-exact">0</div><div class="stat-label">Korrekt resultat</div></div>
+          <div class="stat-card"><div class="stat-value" id="dash-pts">–</div><div class="stat-label">Bompoeng</div></div>
+          <div class="stat-card"><div class="stat-value stat-plain" id="dash-exact">–</div><div class="stat-label">På blinken</div></div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-          <div class="section-title" style="margin-bottom:0">Tabellen</div>
-          <span class="muted" id="dash-played" style="font-size:0.82rem"></span>
+
+        <div id="dash-status"></div>
+
+        <div class="row-between mb-10">
+          <div class="section-title mb-0">Stillingen</div>
+          <span class="muted tiny" id="dash-sub"></span>
         </div>
         <div class="leaderboard">
-          <div class="lb-header">
+          <div class="lb-header lb-pl">
             <div></div><div>Navn</div>
-            <div style="text-align:right">Utfall</div>
-            <div style="text-align:right">Eksakt</div>
-            <div style="text-align:right">Poeng</div>
+            <div class="ta-c">Blink</div>
+            <div class="ta-c">Poeng</div>
           </div>
           <div id="dash-leaderboard"></div>
         </div>
-        <details class="scoring-details" style="margin-top:16px">
-          <summary class="scoring-summary">Poengsystem <span class="scoring-toggle-hint">– trykk for å se</span></summary>
+
+        <details class="scoring-details mt-16">
+          <summary class="scoring-summary">Slik funker det <span class="scoring-toggle-hint">– trykk for å se</span></summary>
           <div class="scoring-table-wrap">
-            <table class="scoring-table">
-              <thead>
-                <tr><th>Runde</th><th>Riktig utfall</th><th>+ Eksakt resultat</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>Gruppespill</td><td>3 p</td><td>+3 p</td></tr>
-                <tr><td>16-delsfinale</td><td>3 p</td><td>+4 p</td></tr>
-                <tr><td>8-delsfinale</td><td>3 p</td><td>+5 p</td></tr>
-                <tr><td>Kvartfinale</td><td>4 p</td><td>+6 p</td></tr>
-                <tr><td>Semifinale</td><td>4 p</td><td>+7 p</td></tr>
-                <tr><td>Bronsefinale</td><td>4 p</td><td>+8 p</td></tr>
-                <tr class="final-row"><td>Finale</td><td>5 p</td><td>+10 p</td></tr>
-              </tbody>
-            </table>
-            <p class="scoring-note">
-              <strong>Prisprediksjon:</strong> Riktig spiller, riktig plass = 10 p &nbsp;·&nbsp; Riktig spiller, feil plass (innen topp 3) = 5 p
+            <p class="scoring-note mt-8">
+              Alle tipper plasseringa til alle dei 20 laga før sesongstart. Så får du poeng
+              etter kor mange plassar du bomma med på kvart lag.
             </p>
             <p class="scoring-note">
-              <strong>Sluttspill:</strong> Poeng gis kun hvis du har spådd riktige lag i den aktuelle kampen.
+              Tippa du for eksempel eit lag på <strong>5. plass</strong>, og dei enda på
+              <strong>8. plass</strong>, får du <strong>3 poeng</strong>.
             </p>
             <p class="scoring-note">
-              <strong>Ekstraomganger:</strong> AET-resultatet gjelder – straffespark teller ikke for poengberegningen.
+              Når alle 38 rundane er ferdigspelte, <strong>vinner den som har færrast poeng totalt</strong>.
             </p>
-            <p class="scoring-note" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            <div class="example-box">
+              <div class="example-row"><span>Arsenal tippa 2. – enda 1.</span><span class="ex-pts">1 p</span></div>
+              <div class="example-row"><span>Everton tippa 9. – enda 16.</span><span class="ex-pts">7 p</span></div>
+              <div class="example-row"><span>Liverpool tippa 3. – enda 3.</span><span class="ex-pts ex-zero">0 p</span></div>
+            </div>
+            <p class="scoring-note mt-16 pt-10 bt">
               <strong>Premiering:</strong><br>
               1. plass – 70%<br>
               2. plass – 20%<br>
               3. plass – 10%<br>
-              <span style="color:var(--red)"><strong>Sisteplass:</strong> betaler dobbelt</span>
+              <span class="c-red"><strong>Sisteplass:</strong> betaler dobbelt</span>
             </p>
           </div>
         </details>
       </div>
     </section>
 
-    <!-- === OVERSIKT === -->
-    <section class="app-section hidden" id="section-oversikt">
-      <div class="container" style="padding-top:20px">
-        <h2 id="oversikt-title" style="margin-bottom:16px">Mine spådommer</h2>
-        <div id="oversikt-content"></div>
+    <!-- === SPÅ === -->
+    <section class="app-section hidden" id="section-tipping">
+      <div class="container pad-top">
+        <div id="tip-banner"></div>
+        <div class="row-between mb-10">
+          <div class="section-title mb-0" id="tip-title">Din tabell</div>
+          <span class="save-status" id="tip-save"></span>
+        </div>
+        <div id="tip-hint" class="tip-hint">
+          Dra i <span class="grip-inline">⠿</span> for å flytte, eller bruk pilene.
+        </div>
+        <div class="pt-list" id="tip-list"></div>
+        <div id="tip-actions"></div>
       </div>
     </section>
 
-    <!-- === TIPPING === -->
-    <section class="app-section hidden" id="section-tipping">
-      <div class="container" style="padding-top:20px">
-        <div class="auth-tabs" style="margin-bottom:16px">
-          <button class="auth-tab active" id="view-tab-kamper" onclick="setTippingView('kamper')">Kamper</button>
-          <button class="auth-tab" id="view-tab-priser" onclick="setTippingView('priser')">Kåringer</button>
+    <!-- === SPILLERE === -->
+    <section class="app-section hidden" id="section-players">
+      <!-- Liste -->
+      <div id="players-list-view">
+        <div class="container pad-top">
+          <div class="row-between mb-10">
+            <div class="section-title mb-0">Med i konkurransen</div>
+            <span class="muted tiny" id="players-count"></span>
+          </div>
+          <div id="players-list"></div>
         </div>
-
-        <div id="tipping-kamper-view">
-          <div id="deadline-banner" style="margin-bottom:12px"></div>
-          <div class="tabs" id="tipping-stage-tabs"></div>
-          <div class="tabs" id="tipping-group-tabs" style="margin-top:-8px;margin-bottom:16px"></div>
-          <div id="tipping-list"></div>
-        </div>
-
-        <div id="tipping-priser-view" class="hidden">
-          <div class="card" id="awards-form">
-            <div class="loading-center"><span class="spinner"></span></div>
+      </div>
+      <!-- Detalj (sveip mellom spillere) -->
+      <div id="players-detail-view" class="hidden">
+        <div class="pd-bar">
+          <button class="pd-back" onclick="closePlayer()" aria-label="Tilbake">
+            <i data-lucide="chevron-left"></i><span>Alle</span>
+          </button>
+          <div class="pd-title" id="pd-name">–</div>
+          <div class="pd-nav">
+            <button class="pd-arrow" onclick="stepPlayer(-1)" aria-label="Forrige spiller"><i data-lucide="chevron-left"></i></button>
+            <button class="pd-arrow" onclick="stepPlayer(1)" aria-label="Neste spiller"><i data-lucide="chevron-right"></i></button>
           </div>
         </div>
+        <div class="pd-dots" id="pd-dots"></div>
+        <div class="container" id="pd-body"></div>
       </div>
     </section>
 
+    <!-- === FAKTA === -->
+    <section class="app-section hidden" id="section-stats">
+      <div class="container pad-top" id="stats-body"></div>
+    </section>
 
   </main>
 
-  <!-- Bottom navigation -->
+  <!-- Bunnmeny -->
   <nav class="bottom-nav">
     <button class="nav-btn active" data-page="dashboard">
-      <i data-lucide="table-2"></i><span>Tabell</span>
+      <i data-lucide="trophy"></i><span>Tabell</span>
     </button>
     <button class="nav-btn" data-page="tipping">
-      <i data-lucide="target"></i><span>Spå</span>
+      <i data-lucide="list-ordered"></i><span>Spå</span>
     </button>
-    <button class="nav-btn" data-page="oversikt">
-      <i data-lucide="layout-grid"></i><span>Oversikt</span>
+    <button class="nav-btn" data-page="players">
+      <i data-lucide="users"></i><span>Spillere</span>
+    </button>
+    <button class="nav-btn" data-page="stats">
+      <i data-lucide="bar-chart-3"></i><span>Fakta</span>
     </button>
   </nav>
 </div>
@@ -243,9 +249,9 @@ const scale = Math.min(64 / img.width, 64 / img.height);
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<script src="js/config.js"></script>
-<script src="js/bracket.js"></script>
-<script src="js/scoring.js"></script>
-<script src="js/app.js"></script>
+<script src="js/config.js?v=3"></script>
+<script src="js/scoring.js?v=3"></script>
+<script src="js/reorder.js?v=3"></script>
+<script src="js/app.js?v=3"></script>
 </body>
 </html>

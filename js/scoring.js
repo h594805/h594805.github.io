@@ -1,197 +1,193 @@
 // ============================================================
-// VM 2026 Tipping – Poengberegning
+// PL-Tipping – Poengberegning og statistikk
+//
+// Regelen: for hvert lag får du poeng lik hvor mange plasser du
+// bommet med. Tippa du et lag på 5. plass og de endte på 8., får
+// du 3 poeng. Færrast poeng totalt vinner.
 // ============================================================
 
-// Normalize a name for comparison: trim, lowercase, strip accents (é → e).
-function normalizeName(s) {
-  return (s || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
-}
-
-// Two award-prediction values refer to the same player if they're equal once
-// accents are stripped, or if one is a subset of the other's words — this
-// lets a surname-only guess ("Mbappe") match a full name ("Kylian Mbappe").
-function namesMatch(a, b) {
-  const na = normalizeName(a);
-  const nb = normalizeName(b);
-  if (!na || !nb) return false;
-  if (na === nb) return true;
-  const wordsA = na.split(/\s+/);
-  const wordsB = nb.split(/\s+/);
-  const [shorter, longer] = wordsA.length <= wordsB.length ? [wordsA, wordsB] : [wordsB, wordsA];
-  return shorter.every(w => longer.includes(w));
-}
-
 const Scoring = {
-  // Calculate points for a single prediction against a played match.
-  // Returns a number (0, outcome points, or exact points), or null if not played.
-  calculate(predHome, predAway, match, penWinnerPred = null) {
-    if (!match.is_played) return null;
-    if (predHome === null || predAway === null) return 0;
 
-    const pts = CONFIG.SCORING[match.stage];
-    if (!pts) return 0;
-
-    // Determine effective result:
-    // - If went to AET, use AET score (not regular time, not penalties)
-    // - Otherwise use regular time score
-    let resHome, resAway;
-    if (match.went_to_aet && match.home_score_aet !== null) {
-      resHome = match.home_score_aet;
-      resAway = match.away_score_aet;
-    } else {
-      resHome = match.home_score;
-      resAway = match.away_score;
+  /** Map: team_id → faktisk plassering (kun lag admin har plassert). */
+  actualMap(teams) {
+    const m = new Map();
+    for (const t of teams) {
+      if (t.actual_position != null) m.set(t.id, t.actual_position);
     }
-
-    // Exact score: outcome points + bonus (scoreline only — penalties never
-    // factor into this comparison, per "AET-resultatet gjelder")
-    if (predHome === resHome && predAway === resAway) {
-      return pts.outcome + pts.exact;
-    }
-
-    if (match.stage === 'group') {
-      // Group stage: a draw is a valid final outcome, so compare W/D/L sign.
-      const predSign   = Math.sign(predHome - predAway);
-      const resultSign = Math.sign(resHome - resAway);
-      return predSign === resultSign ? pts.outcome : 0;
-    }
-
-    // Knockout: a draw can never be the actual final outcome — one team
-    // always goes through, either outright or on penalties. So "riktig
-    // utfall" means predicting the correct team to advance, not matching
-    // the sign of the scoreline.
-    let actualWinner = null;
-    if (resHome !== resAway) {
-      actualWinner = resHome > resAway ? 'home' : 'away';
-    } else if (match.went_to_penalties) {
-      const penSign = Math.sign((match.home_penalties ?? 0) - (match.away_penalties ?? 0));
-      if (penSign > 0) actualWinner = 'home';
-      else if (penSign < 0) actualWinner = 'away';
-    }
-
-    let predictedWinner = null;
-    if (predHome !== predAway) {
-      predictedWinner = predHome > predAway ? 'home' : 'away';
-    } else if (penWinnerPred === 'home' || penWinnerPred === 'away') {
-      predictedWinner = penWinnerPred;
-    }
-
-    if (actualWinner && predictedWinner && actualWinner === predictedWinner) {
-      return pts.outcome;
-    }
-
-    return 0;
+    return m;
   },
 
-  // Total points for a user across all matches
-  totalForUser(predictions, matches) {
-    let total = 0;
-    for (const pred of predictions) {
-      const match = matches.find(m => m.id === pred.match_id);
-      if (!match) continue;
-      const pts = this.calculate(pred.home_score_pred, pred.away_score_pred, match, pred.penalty_winner_pred);
-      if (pts !== null) total += pts;
-    }
-    return total;
+  hasResults(teams) {
+    return teams.some(t => t.actual_position != null);
   },
 
-  // Award prediction points
-  calculateAwards(userPred, actualResults) {
-    if (!userPred || !actualResults) return 0;
-    let total = 0;
-    const fields = [
-      ['best_player_1','best_player_2','best_player_3'],
-      ['top_scorer_1',  'top_scorer_2',  'top_scorer_3'],
-    ];
-    const pts = CONFIG.AWARD_SCORING;
-
-    for (const group of fields) {
-      for (let i = 0; i < group.length; i++) {
-        const field = group[i];
-        const pred   = userPred[field];
-        const actual = actualResults[field];
-        if (!pred || !actual) continue;
-
-        if (namesMatch(pred, actual)) {
-          total += pts.exact;
-          continue;
-        }
-        // Check if the predicted player appears anywhere else in the group (wrong position)
-        for (let j = 0; j < group.length; j++) {
-          if (j === i) continue;
-          if (namesMatch(pred, actualResults[group[j]])) {
-            total += pts.wrong_position;
-            break;
-          }
-        }
-      }
+  /** Spådommene til én spiller som Map: team_id → plassering. */
+  predMap(preds, userId) {
+    const m = new Map();
+    for (const p of preds) {
+      if (String(p.user_id) === String(userId)) m.set(p.team_id, p.position);
     }
-    return total;
+    return m;
   },
 
-  // Build leaderboard: [{user, matchPoints, awardPoints, total, outcomePts, exactPts, exact}]
-  buildLeaderboard(users, predictions, matches, teams, awardPredictions, awardResults) {
-    // Build per-user tiebreaker map from award_predictions
-    const tiebreakerMap = {};
-    for (const ap of (awardPredictions || [])) {
-      if (ap.third_tiebreaker) {
-        try { tiebreakerMap[ap.user_id] = JSON.parse(ap.third_tiebreaker); } catch {}
+  /** Rekkefølgen til én spiller som liste med team_id, 1. plass først. */
+  order(preds, userId) {
+    return preds
+      .filter(p => String(p.user_id) === String(userId))
+      .sort((a, b) => a.position - b.position)
+      .map(p => p.team_id);
+  },
+
+  /**
+   * Regn ut resultatet til én spiller.
+   * → { total, exact, scored, rows: [{team, pred, actual, diff}] }
+   */
+  scoreUser(preds, userId, teams) {
+    const pm     = this.predMap(preds, userId);
+    const actual = this.actualMap(teams);
+    const rows   = [];
+    let total = 0, exact = 0, scored = 0;
+
+    for (const t of teams) {
+      const pred = pm.get(t.id) ?? null;
+      const act  = actual.get(t.id) ?? null;
+      let diff = null;
+      if (pred != null && act != null) {
+        diff = Math.abs(pred - act);
+        total += diff;
+        scored++;
+        if (diff === 0) exact++;
       }
+      rows.push({ team: t, pred, actual: act, diff });
     }
 
-    return users.map(user => {
-      const userPreds = predictions.filter(p => p.user_id === user.id);
-      let matchPoints = 0, outcomePts = 0, exactPts = 0, exactCount = 0;
+    rows.sort((a, b) => (a.pred ?? 99) - (b.pred ?? 99));
+    return { total, exact, scored, rows };
+  },
 
-      // Build this user's predicted bracket once (for knockout team validation)
-      const bracketData = typeof Bracket !== 'undefined'
-        ? Bracket.build(userPreds, teams, matches, tiebreakerMap[user.id] || null)
-        : null;
-
-      for (const pred of userPreds) {
-        const match = matches.find(m => m.id === pred.match_id);
-        if (!match || !match.is_played) continue;
-
-        // Knockout rounds: only award points if the user predicted the correct teams.
-        // home_team_id / away_team_id are written by the admin when saving a result,
-        // so this reliably reflects who actually played.
-        if (match.stage !== 'group' && bracketData) {
-          const slot = bracketData.predictedTeams?.[match.match_number];
-          const homeOk = slot?.home?.id === match.home_team_id;
-          const awayOk = slot?.away?.id === match.away_team_id;
-          if (!homeOk || !awayOk) continue; // wrong teams predicted → 0 points
-        }
-
-        const pts = this.calculate(pred.home_score_pred, pred.away_score_pred, match, pred.penalty_winner_pred);
-        if (pts === null || pts === 0) continue;
-        matchPoints += pts;
-        const scoring = CONFIG.SCORING[match.stage];
-        if (scoring && pts === scoring.outcome + scoring.exact) {
-          outcomePts += scoring.outcome;
-          exactPts   += scoring.exact;
-          exactCount++;
-        } else {
-          outcomePts += pts;
-        }
-      }
-
-      const userAward  = awardPredictions.find(a => a.user_id === user.id) || null;
-      const awardPoints = this.calculateAwards(userAward, awardResults);
-
+  /** Tabellen – sortert med færrast poeng øverst. */
+  buildLeaderboard(users, preds, teams) {
+    const rows = users.map(u => {
+      const s = this.scoreUser(preds, u.id, teams);
       return {
-        user,
-        matchPoints,
-        awardPoints,
-        total: matchPoints + awardPoints,
-        outcomePts,
-        exactPts,
-        exact: exactCount,
-        predictions: userPreds.length,
+        user:   u,
+        total:  s.total,
+        exact:  s.exact,
+        scored: s.scored,
+        tipped: preds.filter(p => String(p.user_id) === String(u.id)).length,
+        locked: !!u.locked_at,
       };
-    }).sort((a, b) => b.total - a.total || b.exactPts - a.exactPts || b.outcomePts - a.outcomePts);
+    });
+
+    if (!this.hasResults(teams)) {
+      // Ingen resultater ennå – vis alfabetisk, låste øverst
+      rows.sort((a, b) => (b.locked - a.locked) ||
+        a.user.username.localeCompare(b.user.username, 'no'));
+    } else {
+      rows.sort((a, b) => (a.total - b.total) || (b.exact - a.exact) ||
+        a.user.username.localeCompare(b.user.username, 'no'));
+    }
+    return rows;
+  },
+};
+
+
+// ============================================================
+// STATISTIKK – hva har gjengen samla sett spådd?
+// ============================================================
+
+const Stats = {
+
+  /**
+   * @returns null hvis ingen har levert komplett tabell, ellers et
+   * objekt med alt fakta-sida trenger.
+   */
+  build(users, preds, teams) {
+    // Kun spillere med komplett tabell teller i statistikken
+    const players = users
+      .map(u => ({ user: u, order: Scoring.order(preds, u.id) }))
+      .filter(p => teams.length > 0 && p.order.length === teams.length);
+
+    if (players.length === 0) return null;
+
+    const byId = new Map(teams.map(t => [t.id, t]));
+    const n    = players.length;
+    const last = teams.length;
+
+    // ---- Per lag: alle plasseringer det har fått --------------
+    const teamStats = teams.map(t => {
+      const picks = players.map(p => ({ user: p.user, pos: p.order.indexOf(t.id) + 1 }));
+      const positions = picks.map(p => p.pos);
+      const avg  = positions.reduce((a, b) => a + b, 0) / n;
+      const vari = positions.reduce((a, b) => a + (b - avg) ** 2, 0) / n;
+      const sorted = picks.slice().sort((a, b) => a.pos - b.pos);
+      return {
+        team:    t,
+        picks,
+        avg,
+        spread:  Math.sqrt(vari),
+        best:    sorted[0],                  // høyest plassert (lavest tall)
+        worst:   sorted[sorted.length - 1],  // lavest plassert
+        firsts:  positions.filter(p => p === 1).length,
+        lasts:   positions.filter(p => p === last).length,
+        top4:    positions.filter(p => p <= 4).length,
+        bottom3: positions.filter(p => p >= last - 2).length,
+      };
+    });
+
+    const avgOf = new Map(teamStats.map(s => [s.team.id, s.avg]));
+
+    // ---- Konsensustabellen -----------------------------------
+    const consensus = teamStats.slice().sort((a, b) => a.avg - b.avg);
+
+    // ---- Gjengens største avvik ------------------------------
+    const outliers = [];
+    for (const p of players) {
+      p.order.forEach((tid, i) => {
+        const t = byId.get(tid);
+        if (!t) return;
+        const avg = avgOf.get(t.id);
+        outliers.push({
+          user: p.user, team: t,
+          pos: i + 1, avg,
+          gap: Math.abs((i + 1) - avg),
+          dir: (i + 1) < avg ? 'høyere' : 'lavere',
+        });
+      });
+    }
+    outliers.sort((a, b) => b.gap - a.gap);
+
+    // ---- Hvor kontrær er hver spiller? -----------------------
+    const contrarian = players.map(p => {
+      let sum = 0;
+      p.order.forEach((tid, i) => { sum += Math.abs((i + 1) - (avgOf.get(tid) ?? 0)); });
+      return { user: p.user, gap: sum, avgGap: sum / teams.length };
+    }).sort((a, b) => b.gap - a.gap);
+
+    // ---- Mest like / ulike tabeller --------------------------
+    const pairs = [];
+    for (let i = 0; i < players.length; i++) {
+      for (let j = i + 1; j < players.length; j++) {
+        const a = players[i], b = players[j];
+        let d = 0;
+        a.order.forEach((tid, k) => { d += Math.abs((k + 1) - (b.order.indexOf(tid) + 1)); });
+        pairs.push({ a: a.user, b: b.user, dist: d });
+      }
+    }
+    pairs.sort((x, y) => x.dist - y.dist);
+
+    return {
+      playerCount: n,
+      players,
+      teamStats,
+      consensus,
+      outliers,
+      contrarian,
+      pairs,
+      champions: teamStats.filter(s => s.firsts > 0).sort((a, b) => b.firsts - a.firsts),
+      spoons:    teamStats.filter(s => s.lasts  > 0).sort((a, b) => b.lasts  - a.lasts),
+      agreed:    teamStats.slice().sort((a, b) => a.spread - b.spread),
+      divisive:  teamStats.slice().sort((a, b) => b.spread - a.spread),
+    };
   },
 };

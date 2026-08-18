@@ -1,117 +1,67 @@
 -- ============================================================
--- VM 2026 Tipping – Database Schema
--- Kjør dette i Supabase SQL Editor
+-- PL-Tipping (tabelltipping) – Databaseskjema
+-- Kjør dette i Supabase SQL Editor, deretter sql/seed.sql
+--
+-- Merk: dette rører IKKE de gamle VM-tabellene (teams, matches,
+-- app_users, predictions ...). Alt nytt har prefiks pl_.
 -- ============================================================
 
--- Teams
-CREATE TABLE IF NOT EXISTS teams (
-  id        SERIAL PRIMARY KEY,
-  name      VARCHAR(100) NOT NULL,
-  name_no   VARCHAR(100),
-  country_code VARCHAR(10) NOT NULL,
-  group_letter CHAR(1) NOT NULL
+-- ---- Lag ---------------------------------------------------
+CREATE TABLE IF NOT EXISTS pl_teams (
+  id              SERIAL PRIMARY KEY,
+  name            VARCHAR(60) NOT NULL,
+  short           VARCHAR(4)  NOT NULL,   -- ARS, MUN, ...
+  color           VARCHAR(9)  NOT NULL,   -- primærfarge (hex)
+  color2          VARCHAR(9),             -- sekundærfarge (hex)
+  logo_url        TEXT,                   -- klubbmerke (tomt = fargemerke)
+  actual_position INT,                    -- faktisk plassering (admin setter)
+  sort_order      INT
 );
 
--- Matches
-CREATE TABLE IF NOT EXISTS matches (
-  id                SERIAL PRIMARY KEY,
-  match_number      INT,
-  home_team_id      INT REFERENCES teams(id),
-  away_team_id      INT REFERENCES teams(id),
-  stage             VARCHAR(10) NOT NULL DEFAULT 'group',
-  -- 'group' | 'r32' | 'r16' | 'qf' | 'sf' | '3rd' | 'final'
-  group_letter      CHAR(1),
-  match_date        TIMESTAMPTZ,
-  venue             VARCHAR(200),
-  -- For knockout rounds before bracket is set
-  home_slot_desc    VARCHAR(120),
-  away_slot_desc    VARCHAR(120),
-  -- Actual results (null until played)
-  home_score        INT,
-  away_score        INT,
-  went_to_aet       BOOLEAN DEFAULT FALSE,
-  home_score_aet    INT,
-  away_score_aet    INT,
-  went_to_penalties BOOLEAN DEFAULT FALSE,
-  home_penalties    INT,
-  away_penalties    INT,
-  is_played         BOOLEAN DEFAULT FALSE
-);
-
--- App users (custom auth – NOT Supabase Auth)
-CREATE TABLE IF NOT EXISTS app_users (
+-- ---- Brukere (egen innlogging – IKKE Supabase Auth) --------
+CREATE TABLE IF NOT EXISTS pl_users (
   id         SERIAL PRIMARY KEY,
   username   VARCHAR(50) UNIQUE NOT NULL,
-  pin_hash   VARCHAR(64) NOT NULL,   -- SHA-256 hex of PIN
+  pin_hash   VARCHAR(64) NOT NULL,        -- SHA-256 hex av PIN
+  locked_at  TIMESTAMPTZ,                 -- satt når spilleren låser tabellen sin
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Predictions
-CREATE TABLE IF NOT EXISTS predictions (
-  id              SERIAL PRIMARY KEY,
-  user_id         INT REFERENCES app_users(id) ON DELETE CASCADE,
-  match_id        INT REFERENCES matches(id)    ON DELETE CASCADE,
-  home_score_pred     INT NOT NULL CHECK (home_score_pred >= 0),
-  away_score_pred     INT NOT NULL CHECK (away_score_pred >= 0),
-  penalty_winner_pred VARCHAR(4) CHECK (penalty_winner_pred IN ('home', 'away')),
-  created_at      TIMESTAMPTZ DEFAULT NOW(),
-  updated_at      TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, match_id)
+-- ---- Spådommer: én rad per lag per spiller -----------------
+CREATE TABLE IF NOT EXISTS pl_predictions (
+  id         SERIAL PRIMARY KEY,
+  user_id    INT REFERENCES pl_users(id) ON DELETE CASCADE,
+  team_id    INT REFERENCES pl_teams(id) ON DELETE CASCADE,
+  position   INT NOT NULL CHECK (position BETWEEN 1 AND 20),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (user_id, team_id)
 );
 
--- Award predictions
-CREATE TABLE IF NOT EXISTS award_predictions (
-  id            SERIAL PRIMARY KEY,
-  user_id       INT REFERENCES app_users(id) ON DELETE CASCADE UNIQUE,
-  best_player_1 VARCHAR(100),
-  best_player_2 VARCHAR(100),
-  best_player_3 VARCHAR(100),
-  top_scorer_1  VARCHAR(100),
-  top_scorer_2  VARCHAR(100),
-  top_scorer_3  VARCHAR(100),
-  updated_at    TIMESTAMPTZ DEFAULT NOW()
+CREATE INDEX IF NOT EXISTS pl_predictions_user_idx ON pl_predictions (user_id);
+
+-- ---- Innstillinger (én rad) --------------------------------
+CREATE TABLE IF NOT EXISTS pl_settings (
+  id                  INT PRIMARY KEY DEFAULT 1,
+  season              VARCHAR(20)  DEFAULT '2026/27',
+  deadline            TIMESTAMPTZ,
+  reveal_predictions  BOOLEAN DEFAULT FALSE,  -- vis andres tabeller før fristen
+  season_finished     BOOLEAN DEFAULT FALSE,  -- tabellen er endelig
+  table_updated_at    TIMESTAMPTZ
 );
 
--- Actual award results (admin sets after tournament)
-CREATE TABLE IF NOT EXISTS award_results (
-  id            INT PRIMARY KEY DEFAULT 1,
-  best_player_1 VARCHAR(100),
-  best_player_2 VARCHAR(100),
-  best_player_3 VARCHAR(100),
-  top_scorer_1  VARCHAR(100),
-  top_scorer_2  VARCHAR(100),
-  top_scorer_3  VARCHAR(100),
-  updated_at    TIMESTAMPTZ DEFAULT NOW()
-);
-
-INSERT INTO award_results (id) VALUES (1) ON CONFLICT DO NOTHING;
-
--- Match goalscorers (filled in by admin after each match)
-CREATE TABLE IF NOT EXISTS match_goalscorers (
-  id          SERIAL PRIMARY KEY,
-  match_id    INT REFERENCES matches(id) ON DELETE CASCADE,
-  player_name VARCHAR(100) NOT NULL,
-  team_id     INT REFERENCES teams(id),
-  is_own_goal BOOLEAN DEFAULT FALSE,
-  goal_minute INT
-);
+INSERT INTO pl_settings (id) VALUES (1) ON CONFLICT DO NOTHING;
 
 -- ============================================================
--- Security: disable RLS + grant anon access
--- (private friend-group app — anon key is the access gate)
+-- Sikkerhet: RLS av + tilgang for anon-nøkkelen
+-- (privat venneside – anon-nøkkelen er tilgangsporten)
 -- ============================================================
-ALTER TABLE teams              DISABLE ROW LEVEL SECURITY;
-ALTER TABLE matches            DISABLE ROW LEVEL SECURITY;
-ALTER TABLE app_users          DISABLE ROW LEVEL SECURITY;
-ALTER TABLE predictions        DISABLE ROW LEVEL SECURITY;
-ALTER TABLE award_predictions  DISABLE ROW LEVEL SECURITY;
-ALTER TABLE award_results      DISABLE ROW LEVEL SECURITY;
-ALTER TABLE match_goalscorers  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE pl_teams       DISABLE ROW LEVEL SECURITY;
+ALTER TABLE pl_users       DISABLE ROW LEVEL SECURITY;
+ALTER TABLE pl_predictions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE pl_settings    DISABLE ROW LEVEL SECURITY;
 
--- Allow the anon key (used by the website) to read/write all tables
 GRANT SELECT, INSERT, UPDATE, DELETE ON
-  teams, matches, app_users, predictions,
-  award_predictions, award_results, match_goalscorers
+  pl_teams, pl_users, pl_predictions, pl_settings
 TO anon;
 
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;

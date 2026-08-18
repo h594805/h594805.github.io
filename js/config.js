@@ -1,6 +1,5 @@
 // ============================================================
-// VM 2026 Tipping – Konfigurasjon
-// Fyll inn dine Supabase-nøkler og passord-hasher.
+// PL-Tipping – Konfigurasjon
 // Se README.md for instruksjoner.
 // ============================================================
 
@@ -12,35 +11,31 @@ const CONFIG = {
   // Ingen nettstedspassord – hvem som helst med linken kan gå inn
   ADMIN_PASSWORD_HASH: '6d9ea5efaf7a7db5f966c4587ae0639d0fa12a80f658a69725df7411e6427fa8',
 
-  DEADLINE: new Date('2026-06-11T19:00:00Z'),
+  // --- Sesong ---
+  // Disse brukes kun som reserve. Ekte verdier hentes fra tabellen
+  // pl_settings og kan endres i admin-panelet.
+  SEASON:   '2026/27',
+  DEADLINE: new Date('2026-08-21T16:00:00Z'),   // 21. aug 2026, 18:00 norsk tid
 
+  // --- Tabellsoner (plassering → farge/etikett) ---
+  ZONES: [
+    { from: 1,  to: 4,  cls: 'zone-ucl', label: 'Mesterliga'      },
+    { from: 5,  to: 5,  cls: 'zone-uel', label: 'Europaliga'      },
+    { from: 6,  to: 6,  cls: 'zone-uec', label: 'Conference'      },
+    { from: 18, to: 20, cls: 'zone-rel', label: 'Nedrykk'         },
+  ],
 
-  // --- Poengsystem ---
-  SCORING: {
-    group: { outcome: 3, exact: 3  },
-    r32:   { outcome: 3, exact: 4  },
-    r16:   { outcome: 3, exact: 5  },
-    qf:    { outcome: 4, exact: 6  },
-    sf:    { outcome: 4, exact: 7  },
-    '3rd': { outcome: 4, exact: 8  },
-    final: { outcome: 5, exact: 10 },
-  },
+  TEAM_COUNT: 20,
 
-  // --- Prisprediksjon-poeng ---
-  AWARD_SCORING: {
-    exact:         10,  // Riktig spiller, riktig plassering
-    wrong_position: 5, // Riktig spiller, feil plassering (innen topp 3)
-  },
-
-  // --- Runde-navn (norsk) ---
-  STAGE_NAMES: {
-    group:  'Gruppespill',
-    thirds: 'Beste treere',
-    r32:    '16-delsfinale',
-    r16:   '8-delsfinale',
-    qf:    'Kvartfinale',
-    sf:    'Semifinale',
-    '3rd': 'Bronsefinale',
-    final: 'FINALE',
-  },
+  // --- Premiering ---
+  PRIZES: [
+    ['1. plass', '70%'],
+    ['2. plass', '20%'],
+    ['3. plass', '10%'],
+  ],
 };
+
+function zoneFor(pos) {
+  const z = CONFIG.ZONES.find(z => pos >= z.from && pos <= z.to);
+  return z ? z.cls : '';
+}

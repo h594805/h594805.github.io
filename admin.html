@@ -2,149 +2,133 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VM 2026 – Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>PL-Tipping – Admin</title>
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+  <meta name="theme-color" content="#f5f5f7">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <style>
-    .admin-stage-tab, .admin-group-tab {
-      padding: 8px 14px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      cursor: pointer;
-      border-radius: 6px;
-      transition: all 0.15s;
-    }
-    .admin-stage-tab.active, .admin-group-tab.active {
-      background: var(--gold);
-      border-color: var(--gold);
-      color: #000;
-    }
-    .admin-tab {
-      padding: 12px 20px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-      font-size: 1rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      background: var(--surface-2);
-      border: none;
-      border-bottom: 2px solid transparent;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .admin-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
-    .match-admin-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      padding: 12px 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 8px;
-    }
-    .match-admin-row.played { border-left: 3px solid var(--gold); }
-    .admin-team { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 120px; }
-    .admin-team.away { justify-content: flex-end; }
-    .admin-score-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .admin-meta { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
-    #admin-toast {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: #22c55e; color: #fff; padding: 12px 24px; border-radius: 8px;
-      font-weight: 700; font-family: 'Barlow Condensed', sans-serif; font-size: 1rem;
-      z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-  </style>
+  <link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
 
-<!-- ENTRY: Admin password -->
+<!-- INNGANG -->
 <div id="admin-entry" class="full-screen">
-  <div style="text-align:center;margin-bottom:24px">
-    <h1 class="gold" style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;letter-spacing:2px">Hello Admin</h1>
-    <p class="muted">VM 2026 Tipping</p>
+  <div class="pl-logo-area">
+    <img src="images/ball.svg" alt="" class="pl-logo-img">
+    <div class="pl-title">
+      <span class="line1">ADMIN</span>
+      <span class="line2">PL-TIPPING</span>
+    </div>
   </div>
   <div class="auth-box">
-    <div class="card">
-      <div id="admin-entry-error" class="alert alert-error hidden"></div>
-      <form id="admin-entry-form">
-        <div class="form-group">
-          <label>Admin-passord</label>
-          <input type="password" id="admin-password" class="form-input" placeholder="Passord..." autofocus required>
-        </div>
-        <button type="submit" id="admin-entry-btn" class="btn btn-gold btn-full">Logg inn</button>
-      </form>
-      <div style="text-align:center;margin-top:16px">
-        <a href="index.html" class="btn btn-ghost btn-sm">← Tilbake</a>
+    <div id="admin-entry-error" class="alert alert-error hidden mb-16"></div>
+    <form id="admin-entry-form">
+      <div class="form-group">
+        <label for="admin-password">Admin-passord</label>
+        <input type="password" id="admin-password" class="form-input" placeholder="Passord..." autofocus required>
       </div>
-    </div>
+      <button type="submit" id="admin-entry-btn" class="btn btn-gold btn-full">Logg inn</button>
+    </form>
+    <div class="ta-c mt-16"><a href="index.html" class="btn btn-ghost btn-sm">← Tilbake til nettstedet</a></div>
   </div>
 </div>
 
-<!-- ADMIN PANEL -->
+<!-- PANEL -->
 <div id="admin-panel" class="hidden">
   <header class="app-header">
-    <div class="header-logo" style="font-family:'Barlow Condensed',sans-serif;font-weight:900;letter-spacing:1.5px">ADMIN – VM 2026</div>
-    <a href="index.html" class="btn btn-ghost btn-sm">← Nettsted</a>
+    <div class="header-logo"><img src="images/ball.svg" alt="" class="header-ball"><span>ADMIN</span></div>
+    <span></span>
+    <a href="index.html" class="btn btn-ghost btn-sm" style="justify-self:end">← Nettsted</a>
   </header>
 
-  <div class="container" style="padding-top:24px;padding-bottom:40px">
+  <div class="container" style="padding-top:18px;padding-bottom:60px">
 
-    <!-- Main tabs -->
-    <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:24px">
-      <button class="admin-tab active" data-section="kamper">Kamper</button>
-      <button class="admin-tab" data-section="priser">Kåringer</button>
+    <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto">
+      <button class="admin-tab active" data-section="fasit">Fasit</button>
+      <button class="admin-tab" data-section="spillere">Spillere</button>
+      <button class="admin-tab" data-section="lag">Lag</button>
+      <button class="admin-tab" data-section="innstillinger">Innstillinger</button>
     </div>
 
-    <!-- === KAMPER === -->
-    <div id="admin-kamper" class="admin-section">
-      <div id="admin-date-tabs" style="display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;padding-bottom:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
-      <div id="admin-match-list">
-        <div class="loading-center"><span class="spinner"></span></div>
+    <!-- === FASIT: den faktiske tabellen === -->
+    <div id="admin-fasit" class="admin-section">
+      <div class="alert alert-info mb-16">
+        Sett laga i den rekkefølgen tabellen faktisk står. Dra i <strong>⠿</strong> eller bruk pilene,
+        og trykk <strong>Lagre fasit</strong>. Du kan oppdatere denne når som helst i løpet av sesongen –
+        spillerne ser da en foreløpig stilling.
+      </div>
+      <div class="row-between mb-10">
+        <div class="section-title mb-0">Faktisk tabell</div>
+        <span class="muted tiny" id="fasit-status"></span>
+      </div>
+      <div class="pt-list" id="fasit-list"></div>
+      <button class="btn btn-gold btn-full mt-16" onclick="saveActualTable()">Lagre fasit</button>
+      <label class="check-line mt-16">
+        <input type="checkbox" id="season-finished" onchange="saveFinished()">
+        <span>Sesongen er ferdig – dette er den endelige tabellen</span>
+      </label>
+      <button class="btn btn-danger btn-full mt-16" onclick="clearActualTable()">Nullstill fasit</button>
+    </div>
+
+    <!-- === SPILLERE === -->
+    <div id="admin-spillere" class="admin-section hidden">
+      <div class="section-title">Registrerte spillere</div>
+      <div class="card-list" id="admin-users"></div>
+    </div>
+
+    <!-- === LAG === -->
+    <div id="admin-lag" class="admin-section hidden">
+      <div class="alert alert-info mb-16">
+        Mangler et klubbmerke? Lim inn en ny bilde-URL her. Tomt felt gir et fargemerke med lagkoden.
+      </div>
+      <div class="card-list" id="admin-teams"></div>
+      <button class="btn btn-gold btn-full mt-16" onclick="saveTeams()">Lagre lag</button>
+    </div>
+
+    <!-- === INNSTILLINGER === -->
+    <div id="admin-innstillinger" class="admin-section hidden">
+      <div class="card">
+        <div class="form-group">
+          <label for="set-season">Sesong</label>
+          <input type="text" id="set-season" class="form-input" placeholder="2026/27">
+        </div>
+        <div class="form-group">
+          <label for="set-deadline">Tippefrist</label>
+          <input type="datetime-local" id="set-deadline" class="form-input">
+          <p class="muted tiny mt-8">Etter fristen kan ingen registrere seg eller endre tabellen sin, og alle spådommer blir synlige.</p>
+        </div>
+        <label class="check-line">
+          <input type="checkbox" id="set-reveal">
+          <span>Vis alles tabeller allerede nå (før fristen)</span>
+        </label>
+        <button class="btn btn-gold btn-full mt-16" onclick="saveSettings()">Lagre innstillinger</button>
       </div>
     </div>
-
-    <!-- === PRISER === -->
-    <div id="admin-priser" class="admin-section" style="display:none">
-      <div class="card" style="max-width:500px">
-        <h3 style="margin-bottom:16px">Faktiske prisvinnere</h3>
-        <p class="muted mb-16" style="font-size:0.85rem">Fyll inn etter turneringen er ferdig.</p>
-        <div class="divider"></div>
-        <h4 style="margin:16px 0 12px;color:var(--gold)">Beste spiller</h4>
-        <div class="form-group"><label>1. plass</label><input type="text" id="award-result-best_player_1" class="form-input" placeholder="Fullt navn..."></div>
-        <div class="form-group"><label>2. plass</label><input type="text" id="award-result-best_player_2" class="form-input" placeholder="Fullt navn..."></div>
-        <div class="form-group"><label>3. plass</label><input type="text" id="award-result-best_player_3" class="form-input" placeholder="Fullt navn..."></div>
-        <div class="divider"></div>
-        <h4 style="margin:16px 0 12px;color:var(--gold)">Toppscorer</h4>
-        <div class="form-group"><label>1. plass</label><input type="text" id="award-result-top_scorer_1" class="form-input" placeholder="Fullt navn..."></div>
-        <div class="form-group"><label>2. plass</label><input type="text" id="award-result-top_scorer_2" class="form-input" placeholder="Fullt navn..."></div>
-        <div class="form-group"><label>3. plass</label><input type="text" id="award-result-top_scorer_3" class="form-input" placeholder="Fullt navn..."></div>
-        <button class="btn btn-gold btn-full mt-8" onclick="saveAwardResults()">Lagre prisvinnere</button>
-      </div>
-    </div>
-
 
   </div>
 </div>
 
-<!-- Toast -->
-<div id="admin-toast" class="hidden"></div>
+<style>
+  .check-line {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.86rem; color: var(--text-2); cursor: pointer;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 12px 14px;
+  }
+  .check-line input { width: 20px; height: 20px; accent-color: var(--gold); flex-shrink: 0; }
+  .at-input {
+    width: 100%; background: var(--surface-3); border: 1px solid transparent;
+    border-radius: 6px; padding: 7px 9px; font-size: 16px; color: var(--text); outline: none;
+  }
+  .at-input:focus { background: var(--surface); border-color: var(--gold); }
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/scoring.js"></script>
-<script src="js/bracket.js"></script>
-<script src="js/admin.js"></script>
+<script src="js/config.js?v=3"></script>
+<script src="js/scoring.js?v=3"></script>
+<script src="js/reorder.js?v=3"></script>
+<script src="js/admin.js?v=3"></script>
 </body>
 </html>
