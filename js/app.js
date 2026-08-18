@@ -73,33 +73,6 @@ function fmtDayTime(iso) {
   return `${DAYS_NN[d.getDay()]} ${fmtDateTime(iso)}`;
 }
 
-// ============================================================
-// TEMA – mørk er standard
-// ============================================================
-const THEME_KEY = 'pltipping_theme';
-
-function currentTheme() {
-  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-}
-
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem(THEME_KEY, theme);
-  document.querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', theme === 'light' ? '#f5f5f7' : '#0e0e11');
-  const icon = document.getElementById('theme-icon');
-  if (icon) {
-    // Byt ikonet: måne i mørk modus, sol i lys
-    icon.outerHTML = `<i data-lucide="${theme === 'light' ? 'sun' : 'moon'}" id="theme-icon"></i>`;
-    if (window.lucide) lucide.createIcons();
-  }
-}
-
-function toggleTheme() {
-  applyTheme(currentTheme() === 'light' ? 'dark' : 'light');
-  if (navigator.vibrate) navigator.vibrate(8);
-}
-
 function toast(msg, kind = 'ok') {
   let el = document.getElementById('app-toast');
   if (!el) {
@@ -147,7 +120,6 @@ function canReveal()  { return deadlinePassed() || !!State.settings?.reveal_pred
 // OPPSTART
 // ============================================================
 async function init() {
-  applyTheme(currentTheme());
   if (window.lucide) lucide.createIcons();
 
   if (!CONFIG.SUPABASE_URL || CONFIG.SUPABASE_URL.includes('DIN-')) {

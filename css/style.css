@@ -1,59 +1,9 @@
 /* ============================================================
    PL-Tipping – Stilark
-   Mobil først. Mørk modus er standard; lys modus via
-   <html data-theme="light">.
+   Mobil først, lys modus.
    ============================================================ */
 
-/* ---- MØRK (standard) ---- */
 :root {
-  --bg:         #0e0e11;
-  --surface:    #191920;
-  --surface-2:  #1f1f27;
-  --surface-3:  #26262f;
-  --border:     rgba(255,255,255,0.08);
-  --border-med: rgba(255,255,255,0.17);
-  --gold:       #e0aa2c;
-  --gold-light: #f0bd45;
-  --gold-dark:  #f0bd45;
-  --gold-dim:   rgba(224,170,44,0.15);
-  --text:       #f3f3f6;
-  --text-2:     rgba(243,243,246,0.74);
-  --text-muted: rgba(243,243,246,0.46);
-  --green:      #3dc97a;
-  --green-dim:  rgba(61,201,122,0.15);
-  --red:        #ff5b6b;
-  --red-dim:    rgba(255,91,107,0.14);
-  --yellow:     #e8a93a;
-  --yellow-dim: rgba(232,169,58,0.15);
-  --blue:       #4d9dff;
-  --purple:     #a97bdd;
-
-  --glass:      rgba(19,19,24,0.86);
-  --glass-tab:  rgba(70,70,82,0.85);
-  --splash-bg:  #0e0e11;
-  --toast-bg:   rgba(60,60,72,0.97);
-  --toast-fg:   #ffffff;
-  --on-gold:    #17140b;
-
-  --me-bg:      rgba(224,170,44,0.10);
-  --last-bg:    rgba(255,91,107,0.09);
-  --rank-1:     #e0aa2c;
-  --rank-2:     #b9bcc4;
-  --rank-3:     #cf8a4a;
-
-  --shadow-sm:  0 1px 4px rgba(0,0,0,0.35);
-  --shadow-md:  0 4px 24px rgba(0,0,0,0.45);
-  --shadow-lg:  0 10px 28px rgba(0,0,0,0.6);
-  --crest-pad:  rgba(255,255,255,0.94);
-
-  --nav-h:      54px;
-  --radius-sm:  8px;
-  --radius:     14px;
-  --radius-lg:  20px;
-}
-
-/* ---- LYS ---- */
-:root[data-theme="light"] {
   --bg:         #f5f5f7;
   --surface:    #ffffff;
   --surface-2:  #ffffff;
@@ -74,7 +24,7 @@
   --yellow:     #b86e00;
   --yellow-dim: rgba(184,110,0,0.09);
   --blue:       #0071e3;
-  --purple:     #6b3fa0;
+  --purple:     #37003c;
 
   --glass:      rgba(255,255,255,0.88);
   --glass-tab:  rgba(255,255,255,0.82);
@@ -92,7 +42,11 @@
   --shadow-sm:  0 1px 4px rgba(0,0,0,0.05);
   --shadow-md:  0 4px 24px rgba(0,0,0,0.07);
   --shadow-lg:  0 8px 22px rgba(0,0,0,0.18);
-  --crest-pad:  transparent;
+
+  --nav-h:      54px;
+  --radius-sm:  8px;
+  --radius:     14px;
+  --radius-lg:  20px;
 }
 
 /* ---- Nullstilling ---- */
@@ -107,9 +61,8 @@ html {
   overscroll-behavior-x: none;
   -webkit-text-size-adjust: 100%;
   background: var(--bg);
-  color-scheme: dark;
+  color-scheme: light;
 }
-:root[data-theme="light"] { color-scheme: light; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Barlow', 'Helvetica Neue', sans-serif;
@@ -405,17 +358,6 @@ select.form-input { cursor: pointer; }
   font-size: 0.8rem; font-weight: 600; color: var(--text-2);
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 72px;
 }
-.theme-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  padding: 8px 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.theme-btn svg { width: 18px; height: 18px; stroke-width: 2; }
-.theme-btn:active { color: var(--gold); }
 
 .app-content { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 28px); }
 
@@ -645,8 +587,6 @@ details[open] .scoring-toggle-hint { display: none; }
   display: inline-flex;
   width: 26px; height: 26px;
   flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--crest-pad);
 }
 .crest img {
   position: relative;
@@ -746,8 +686,8 @@ details[open] .scoring-toggle-hint { display: none; }
 .pt-arrow:active:not(:disabled) { background: var(--gold); color: var(--on-gold); transform: scale(0.9); }
 .pt-arrow:disabled { opacity: 0.25; }
 /* Større treffflate for tommelen utan å gjere knappen visuelt større */
-.pt-arrow, .pt-grip, .theme-btn, .pd-arrow { position: relative; }
-.pt-arrow::after, .pt-grip::after, .theme-btn::after, .pd-arrow::after {
+.pt-arrow, .pt-grip, .pd-arrow { position: relative; }
+.pt-arrow::after, .pt-grip::after, .pd-arrow::after {
   content: '';
   position: absolute;
   inset: -7px -3px;
@@ -1229,14 +1169,42 @@ details[open] .scoring-toggle-hint { display: none; }
   z-index: 10000;
   pointer-events: none;
   user-select: none;
+  -webkit-user-select: none;
   line-height: 1;
-  animation: shrimp-rise linear forwards;
+  will-change: transform;
+  animation: shrimp-rise var(--dur, 3s) cubic-bezier(0.35, 0, 0.65, 1) var(--delay, 0s) forwards;
 }
+/* Indre element spinn/pulsar uavhengig av stiginga */
+.splash-shrimp i {
+  display: block;
+  font-style: normal;
+  /* Apple-emoji først, så iPhone får sin eigen reke */
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  will-change: transform;
+  animation: shrimp-spin var(--spindur, 2.4s) linear var(--delay, 0s) infinite,
+             shrimp-pulse var(--pulsedur, 1.6s) ease-in-out var(--delay, 0s) infinite;
+}
+
 @keyframes shrimp-rise {
-  0%   { transform: translateY(0) translateX(0) rotate(-15deg); }
-  40%  { transform: translateY(-38vh) translateX(14px) rotate(10deg); }
-  70%  { transform: translateY(-70vh) translateX(-10px) rotate(-8deg); }
-  100% { transform: translateY(-115vh) translateX(6px) rotate(5deg); }
+  0%   { transform: translate3d(0, 0, 0);                       opacity: 0; }
+  8%   {                                                        opacity: 1; }
+  25%  { transform: translate3d(calc(var(--drift) *  1), -30vh, 0); }
+  50%  { transform: translate3d(calc(var(--drift) * -0.8), -58vh, 0); }
+  75%  { transform: translate3d(calc(var(--drift) *  0.9), -86vh, 0); }
+  88%  {                                                        opacity: 1; }
+  100% { transform: translate3d(calc(var(--drift) * -0.3), -118vh, 0); opacity: 0; }
+}
+@keyframes shrimp-spin {
+  from { rotate: var(--spin-from, -18deg); }
+  to   { rotate: var(--spin-to, 342deg); }
+}
+@keyframes shrimp-pulse {
+  0%, 100% { scale: var(--s-min, 0.85); }
+  50%      { scale: var(--s-max, 1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-shrimp { display: none; }
 }
 
 /* ================================================================
