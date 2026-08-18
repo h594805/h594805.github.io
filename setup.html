@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="no">
+<html lang="nn">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3">
+  <link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
 <div class="container" style="padding:28px 16px 56px">
@@ -23,44 +23,48 @@
 
   <!-- Steg 1 -->
   <div class="card mb-24">
-    <h2 style="margin-bottom:4px">Steg 1 – Kjør SQL i Supabase</h2>
-    <p class="muted mb-16" style="font-size:0.88rem">Supabase → SQL Editor, i denne rekkefølgen:</p>
+    <h2 style="margin-bottom:4px">Steg 1 – Køyr SQL i Supabase</h2>
+    <p class="muted mb-16" style="font-size:0.88rem">Supabase → SQL Editor, i denne rekkjefølgja:</p>
     <ol style="margin-left:20px;line-height:2;color:var(--text-2)">
-      <li><code>sql/schema.sql</code> – oppretter <code>pl_teams</code>, <code>pl_users</code>,
+      <li><code>sql/schema.sql</code> – lagar <code>pl_teams</code>, <code>pl_users</code>,
           <code>pl_predictions</code> og <code>pl_settings</code></li>
-      <li><code>sql/seed.sql</code> – legger inn de 20 laga og setter tippefristen</li>
+      <li><code>sql/seed.sql</code> – legg inn dei 20 laga og set tippefristen</li>
     </ol>
     <div class="alert alert-info mt-16">
-      Begge filene er trygge å kjøre flere ganger – de bruker <code>IF NOT EXISTS</code>
-      og <code>ON CONFLICT</code>. De gamle VM-tabellene blir ikke rørt.
+      Begge filene er trygge å køyre fleire gonger – dei brukar <code>IF NOT EXISTS</code>
+      og <code>ON CONFLICT</code>.
     </div>
   </div>
 
   <!-- Steg 2 -->
   <div class="card mb-24">
-    <h2 style="margin-bottom:4px">Steg 2 – Nøkler i js/config.js</h2>
+    <h2 style="margin-bottom:4px">Steg 2 – Nøklar i js/config.js</h2>
     <p class="muted mb-16" style="font-size:0.88rem">
-      Finn disse i Supabase under <strong>Project Settings → API</strong>:
+      Du finn desse i Supabase under <strong>Project Settings → API</strong>:
     </p>
     <div class="card card-sm" style="font-family:ui-monospace,monospace;font-size:0.82rem;background:var(--bg);line-height:1.9">
       <div><span class="muted">SUPABASE_URL:</span> <span class="gold">https://xyz.supabase.co</span></div>
-      <div><span class="muted">SUPABASE_ANON_KEY:</span> <span class="gold">anon / public key</span></div>
-      <div><span class="muted">ADMIN_PASSWORD_HASH:</span> <span class="gold">hashen fra steg 3</span></div>
+      <div><span class="muted">SUPABASE_ANON_KEY:</span> <span class="gold">publishable / anon key</span></div>
+      <div><span class="muted">ADMIN_PASSWORD_HASH:</span> <span class="gold">hashen frå steg 3</span></div>
+    </div>
+    <div class="alert alert-warning mt-16">
+      Postgres-passordet skal <strong>ikkje</strong> inn her. Det høyrer heime i <code>.env</code>,
+      som ligg i <code>.gitignore</code> og aldri skal pushast.
     </div>
   </div>
 
   <!-- Steg 3 -->
   <div class="card mb-24">
-    <h2 style="margin-bottom:4px">Steg 3 – Generer adminpassord</h2>
+    <h2 style="margin-bottom:4px">Steg 3 – Lag admin-passord</h2>
     <p class="muted mb-16" style="font-size:0.88rem">
-      Adminpassordet lagres kun som SHA-256-hash i <code>js/config.js</code>.
-      Deltakerne trenger ikke passord – de registrerer seg med navn og PIN.
+      Admin-passordet blir berre lagra som SHA-256-hash i <code>js/config.js</code>.
+      Deltakarane treng ikkje passord – dei registrerer seg med namn og PIN.
     </p>
     <div class="form-group">
-      <label for="admin-pw">Adminpassord (kun for deg)</label>
-      <input type="text" id="admin-pw" class="form-input" placeholder="F.eks. noeHemmelig123">
+      <label for="admin-pw">Admin-passord (berre for deg)</label>
+      <input type="text" id="admin-pw" class="form-input" placeholder="T.d. noko-hemmeleg-123">
     </div>
-    <button class="btn btn-gold btn-full" onclick="generateHash()">Generer hash</button>
+    <button class="btn btn-gold btn-full" onclick="generateHash()">Lag hash</button>
     <div id="hash-result" class="hidden mt-16">
       <div class="alert alert-success mb-8">Lim denne inn som <code>ADMIN_PASSWORD_HASH</code>:</div>
       <div class="card card-sm" style="font-family:ui-monospace,monospace;font-size:0.82rem;background:var(--bg)">
@@ -73,14 +77,14 @@
   <div class="card mb-24">
     <h2 style="margin-bottom:4px">Steg 4 – Sesong og frist</h2>
     <p class="muted" style="font-size:0.88rem">
-      Åpne <strong>admin.html → Innstillinger</strong> og sett sesong, tippefrist og om
-      andres tabeller skal være synlige før fristen. Verdiene i <code>js/config.js</code>
-      brukes bare som reserve hvis databasen ikke svarer.
+      Opne <strong>admin.html → Innstillingar</strong> og set sesong, tippefrist og om
+      tabellane til dei andre skal vere synlege før fristen. Verdiane i <code>js/config.js</code>
+      blir berre brukte som reserve dersom databasen ikkje svarar.
     </p>
   </div>
 
   <div class="ta-c mt-24">
-    <a href="index.html" class="btn btn-gold">Gå til nettstedet →</a>
+    <a href="index.html" class="btn btn-gold">Gå til nettstaden →</a>
     <a href="admin.html" class="btn btn-outline" style="margin-left:10px">Admin-panel →</a>
   </div>
 </div>

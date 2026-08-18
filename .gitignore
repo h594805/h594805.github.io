@@ -1,2 +1,7 @@
 .claude/
 *.local
+
+# Hemmelegheiter – skal aldri til GitHub
+.env
+.env.*
+!.env.example

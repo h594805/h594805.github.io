@@ -1,25 +1,25 @@
 // ============================================================
-// PL-Tipping – Hovedapp
+// PL-Tipping – Hovudapp
 // ============================================================
 
 const { createClient } = supabase;
 let db = null;
 
 const State = {
-  user:      null,   // innlogget bruker (fra pl_users)
+  user:      null,   // innlogga brukar (frå pl_users)
   teams:     [],
   users:     [],
-  preds:     [],     // alle spådommer, alle spillere
+  preds:     [],     // alle spådommar, alle spelarar
   settings:  null,
-  myOrder:   [],     // team_id i rekkefølge, 1. plass først
+  myOrder:   [],     // team_id i rekkjefølgje, 1. plass først
   page:      'dashboard',
-  playerIdx: -1,     // hvilken spiller som vises i detaljvisning
+  playerIdx: -1,     // kven som blir vist i detaljvisninga
 };
 
 const STORE_KEY = 'pltipping_user';
 
 // ============================================================
-// UTILS
+// HJELPARAR
 // ============================================================
 function esc(str) {
   if (str == null) return '';
@@ -32,12 +32,12 @@ async function sha256(message) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-/** Tall med norsk desimalkomma. */
+/** Tal med norsk desimalkomma. */
 function fmt1(n) { return (Math.round(n * 10) / 10).toFixed(1).replace('.', ','); }
 
 function teamById(id) { return State.teams.find(t => String(t.id) === String(id)) || null; }
 
-/** Klubbmerke med fargemerke som reserve hvis bildet ikke laster. */
+/** Klubbmerke med fargemerke som reserve om biletet ikkje lastar. */
 function crest(team, cls = 'crest') {
   if (!team) return `<span class="${cls}"></span>`;
   const fb = `<span class="crest-fb" style="--c:${esc(team.color || '#8e8e93')}">${esc(team.short || '?')}</span>`;
@@ -53,16 +53,24 @@ function initials(name) {
   return (name || '?').trim().charAt(0).toUpperCase();
 }
 
-const MONTHS_NO = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
+const MONTHS_NN = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
+const DAYS_NN   = ['sundag','måndag','tysdag','onsdag','torsdag','fredag','laurdag'];
+
 function fmtDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
-  return `${d.getDate()}. ${MONTHS_NO[d.getMonth()]}`;
+  return `${d.getDate()}. ${MONTHS_NN[d.getMonth()]}`;
 }
 function fmtDateTime(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   return `${fmtDate(iso)} kl. ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+/** «fredag 21. aug kl. 19:30» */
+function fmtDayTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${DAYS_NN[d.getDay()]} ${fmtDateTime(iso)}`;
 }
 
 function toast(msg, kind = 'ok') {
@@ -93,7 +101,7 @@ function deadlineText() {
   const days = Math.floor(ms / 86400000);
   const hrs  = Math.floor((ms % 86400000) / 3600000);
   const mins = Math.floor((ms % 3600000) / 60000);
-  if (days > 0) return `${days} dag${days !== 1 ? 'er' : ''} ${hrs}t`;
+  if (days > 0) return `${days} ${days === 1 ? 'dag' : 'dagar'} ${hrs}t`;
   if (hrs  > 0) return `${hrs}t ${mins}min`;
   return `${mins} min`;
 }
@@ -103,11 +111,13 @@ function me() {
 }
 function iAmLocked()  { return !!me()?.locked_at; }
 function canEdit()    { return !iAmLocked() && !deadlinePassed(); }
-/** Kan man se andres tabeller? */
+/** Kan ein låse opp att sjølv? Ja, heilt fram til fristen. */
+function canUnlock()  { return iAmLocked() && !deadlinePassed(); }
+/** Kan ein sjå tabellane til dei andre? */
 function canReveal()  { return deadlinePassed() || !!State.settings?.reveal_predictions; }
 
 // ============================================================
-// INIT
+// OPPSTART
 // ============================================================
 async function init() {
   if (window.lucide) lucide.createIcons();
@@ -138,9 +148,9 @@ function showSetupWarning() {
   document.body.innerHTML = `
     <div class="full-screen">
       <div class="card" style="max-width:480px;text-align:center">
-        <h2 class="mb-16">Konfigurer nettsiden</h2>
-        <p class="muted mb-16">Fyll inn Supabase-nøklene i <strong>js/config.js</strong> før du starter.</p>
-        <a href="setup.html" class="btn btn-gold">Åpne oppsett-verktøy</a>
+        <h2 class="mb-16">Set opp nettsida</h2>
+        <p class="muted mb-16">Fyll inn Supabase-nøklane i <strong>js/config.js</strong> før du startar.</p>
+        <a href="setup.html" class="btn btn-gold">Opne oppsettverktøyet</a>
       </div>
     </div>`;
 }
@@ -160,7 +170,7 @@ function hideSplash() {
 }
 
 // ============================================================
-// AUTH
+// INNLOGGING
 // ============================================================
 function setupAuthPage() {
   switchAuthTab('login');
@@ -228,8 +238,8 @@ async function handleLogin() {
   const username = document.getElementById('login-username').value.trim();
   document.getElementById('login-error').classList.add('hidden');
 
-  if (!username)              return authError('login-error', 'Skriv inn navnet ditt.');
-  if (pins.login.length !== 4) return authError('login-error', 'PIN-koden må være 4 siffer.');
+  if (!username)               return authError('login-error', 'Skriv inn namnet ditt.');
+  if (pins.login.length !== 4) return authError('login-error', 'PIN-koden må ha 4 siffer.');
 
   const pinHash = await sha256(pins.login);
   const { data, error } = await db.from('pl_users')
@@ -237,7 +247,7 @@ async function handleLogin() {
 
   if (error || !data) {
     clearPin('login');
-    return authError('login-error', 'Feil navn eller PIN. Prøv igjen.');
+    return authError('login-error', 'Feil namn eller PIN. Prøv igjen.');
   }
 
   State.user = data;
@@ -250,11 +260,11 @@ async function handleRegister() {
   document.getElementById('reg-error').classList.add('hidden');
 
   if (deadlinePassed())
-    return authError('reg-error', 'Fristen har gått ut – det er ikke mulig å registrere seg lenger.');
+    return authError('reg-error', 'Fristen har gått ut – det går ikkje an å registrere seg lenger.');
   if (username.length < 2)
-    return authError('reg-error', 'Navnet må ha minst 2 tegn.');
+    return authError('reg-error', 'Namnet må ha minst 2 teikn.');
   if (pins.register.length !== 4)
-    return authError('reg-error', 'PIN-koden må være 4 siffer.');
+    return authError('reg-error', 'PIN-koden må ha 4 siffer.');
 
   const pinHash = await sha256(pins.register);
   const { data, error } = await db.from('pl_users')
@@ -263,8 +273,8 @@ async function handleRegister() {
   if (error) {
     clearPin('register');
     return authError('reg-error', /unique|duplicate/i.test(error.message || '')
-      ? 'Navnet er allerede tatt. Velg et annet.'
-      : 'Registrering feilet. Prøv igjen.');
+      ? 'Namnet er allereie teke. Vel eit anna.'
+      : 'Registreringa gjekk ikkje. Prøv igjen.');
   }
 
   State.user = data;
@@ -288,7 +298,7 @@ async function loadUsers() {
   State.users = data || [];
 }
 async function loadPredictions() {
-  // Sideveis lasting – PostgREST returnerer maks 1000 rader per kall
+  // Sidevis lasting – PostgREST gjev maks 1000 rader per kall
   const size = 1000;
   let from = 0, all = [];
   while (true) {
@@ -364,11 +374,11 @@ function navigateTo(page) {
 }
 
 // ============================================================
-// TABELL (dashboard)
+// TABELL (stillinga)
 // ============================================================
 function renderDashboard() {
   const hasRes = Scoring.hasResults(State.teams);
-  const lb  = Scoring.buildLeaderboard(State.users, State.preds, State.teams);
+  const lb   = Scoring.buildLeaderboard(State.users, State.preds, State.teams);
   const mine = lb.find(r => String(r.user.id) === String(State.user.id));
   const myRank = mine ? lb.indexOf(mine) + 1 : 0;
 
@@ -387,32 +397,31 @@ function renderDashboard() {
     const cls = myRank <= 3 ? 'rank-' + myRank : isLast ? 'rank-last' : null;
     if (cls) [rankEl, ptsEl, exactEl].forEach(e => e.classList.add(cls));
   } else {
-    rankEl.textContent  = '–';
-    ptsEl.textContent   = '–';
+    rankEl.textContent = '–';
+    ptsEl.textContent = '–';
     exactEl.textContent = '–';
   }
 
-  // Statusbanner
   const statusEl = document.getElementById('dash-status');
   const done = State.teams.filter(t => t.actual_position != null).length;
   if (!hasRes) {
     const left = deadlineText();
     statusEl.innerHTML = deadlinePassed()
-      ? `<div class="alert alert-info mb-16">Sesongen er i gang. Poengene dukker opp her så snart tabellen legges inn.</div>`
-      : `<div class="alert alert-info mb-16">Tippefrist <strong>${esc(fmtDateTime(deadline()))}</strong>${left ? ` – ${esc(left)} igjen` : ''}. Husk å låse tabellen din!</div>`;
+      ? `<div class="alert alert-info mb-16">Sesongen er i gang. Poenga dukkar opp her så snart tabellen blir lagt inn.</div>`
+      : `<div class="alert alert-info mb-16">Tippefrist <strong>${esc(fmtDayTime(deadline()))}</strong>${left ? ` – ${esc(left)} igjen` : ''}. Hugs å låse tabellen din!</div>`;
   } else if (!State.settings?.season_finished) {
-    statusEl.innerHTML = `<div class="alert alert-warning mb-16">Foreløpig stilling – basert på tabellen per ${esc(fmtDate(State.settings?.table_updated_at) || 'nå')}${done < State.teams.length ? ` (${done}/${State.teams.length} lag lagt inn)` : ''}.</div>`;
+    statusEl.innerHTML = `<div class="alert alert-warning mb-16">Førebels stilling – bygd på tabellen per ${esc(fmtDate(State.settings?.table_updated_at) || 'no')}${done < State.teams.length ? ` (${done}/${State.teams.length} lag lagt inn)` : ''}.</div>`;
   } else {
-    statusEl.innerHTML = `<div class="alert alert-success mb-16">Sesongen er ferdig – dette er den endelige stillingen. 🏆</div>`;
+    statusEl.innerHTML = `<div class="alert alert-success mb-16">Sesongen er ferdig – dette er den endelege stillinga. 🏆</div>`;
   }
 
   document.getElementById('dash-sub').textContent = hasRes
-    ? 'Færrest poeng vinner'
+    ? 'Færrast poeng vinn'
     : `${State.users.filter(u => u.locked_at).length}/${State.users.length} har låst`;
 
   const showLast = hasRes && lb.length >= 4;
   document.getElementById('dash-leaderboard').innerHTML = lb.length === 0
-    ? `<div class="empty-state"><p class="empty-title">Ingen deltakere ennå</p><p>Del linken med gjengen!</p></div>`
+    ? `<div class="empty-state"><p class="empty-title">Ingen deltakarar enno</p><p>Del lenkja med gjengen!</p></div>`
     : lb.map((row, i) => {
       const isMe   = String(row.user.id) === String(State.user.id);
       const isLast = showLast && i === lb.length - 1;
@@ -422,7 +431,7 @@ function renderDashboard() {
         : `<div class="lb-cell">${row.tipped}/${State.teams.length}</div>
            <div class="lb-cell">${row.locked
               ? '<span class="lock-pill locked">Låst</span>'
-              : '<span class="lock-pill">Åpen</span>'}</div>`;
+              : '<span class="lock-pill">Open</span>'}</div>`;
       return `<div class="lb-row lb-pl${isMe ? ' me' : ''}${isLast ? ' lb-last' : ''}"
                    onclick="openPlayerById('${row.user.id}')">
         <div class="lb-rank${rankCls}">${hasRes ? i + 1 : ''}</div>
@@ -433,16 +442,19 @@ function renderDashboard() {
 }
 
 // ============================================================
-// SPÅ – min tabell
+// SPÅ – tabellen min
 // ============================================================
 function renderTipping() {
   const editable = canEdit();
   const listEl   = document.getElementById('tip-list');
   const hasRes   = Scoring.hasResults(State.teams);
 
-  // Banner
   const banner = document.getElementById('tip-banner');
-  if (iAmLocked()) {
+  if (iAmLocked() && !deadlinePassed()) {
+    banner.innerHTML = `<div class="alert alert-success mb-16">
+      Tabellen din er låst ${esc(fmtDateTime(me().locked_at))}.
+      Du kan låse opp att og endre heilt fram til fristen ${esc(fmtDayTime(deadline()))}.</div>`;
+  } else if (iAmLocked()) {
     banner.innerHTML = `<div class="alert alert-success mb-16">
       Tabellen din er låst ${esc(fmtDateTime(me().locked_at))}. Lykke til! 🤞</div>`;
   } else if (deadlinePassed()) {
@@ -450,12 +462,12 @@ function renderTipping() {
       Fristen har gått ut – tabellen din er låst automatisk.</div>`;
   } else {
     banner.innerHTML = `<div class="alert alert-info mb-16">
-      Sett laga i den rekkefølgen du tror tabellen ender.
-      Endringer lagres automatisk fram til du låser.</div>`;
+      Set laga i den rekkjefølgja du trur tabellen endar.
+      Endringar blir lagra automatisk fram til du låser.</div>`;
   }
 
   document.getElementById('tip-hint').classList.toggle('hidden', !editable);
-  document.getElementById('tip-title').textContent = editable ? 'Din tabell' : 'Din tabell (låst)';
+  document.getElementById('tip-title').textContent = editable ? 'Tabellen din' : 'Tabellen din (låst)';
 
   const actual = Scoring.actualMap(State.teams);
   listEl.innerHTML = State.myOrder.map((id, i) => {
@@ -472,14 +484,19 @@ function renderTipping() {
     }, canEdit);
   }
 
-  // Knapper
   const actions = document.getElementById('tip-actions');
   if (editable) {
     actions.innerHTML = `
       <button class="btn btn-gold btn-full mt-16" onclick="lockPredictions()">
         <i data-lucide="lock"></i> Lås inn tabellen
       </button>
-      <p class="muted tiny ta-c mt-8">Når du låser kan du ikke endre mer.</p>`;
+      <p class="muted tiny ta-c mt-8">Du kan låse opp att så lenge fristen ikkje har gått ut.</p>`;
+  } else if (canUnlock()) {
+    actions.innerHTML = `
+      <button class="btn btn-outline btn-full mt-16" onclick="unlockPredictions()">
+        <i data-lucide="lock-open"></i> Lås opp og endre
+      </button>
+      <p class="muted tiny ta-c mt-8">Fristen går ut ${esc(fmtDayTime(deadline()))}.</p>`;
   } else if (hasRes) {
     const s = Scoring.scoreUser(State.preds, State.user.id, State.teams);
     actions.innerHTML = `<div class="score-summary mt-16">
@@ -547,9 +564,9 @@ function setSaveStatus(kind) {
   const el = document.getElementById('tip-save');
   if (!el) return;
   el.className = 'save-status ' + (kind || '');
-  el.textContent = kind === 'saving' ? 'Lagrer…' : kind === 'ok' ? 'Lagret ✓' : kind === 'error' ? 'Ikke lagret ✗' : '';
+  el.textContent = kind === 'saving' ? 'Lagrar…' : kind === 'ok' ? 'Lagra ✓' : kind === 'error' ? 'Ikkje lagra ✗' : '';
   if (kind === 'ok') setTimeout(() => {
-    if (el.textContent === 'Lagret ✓') { el.textContent = ''; el.className = 'save-status'; }
+    if (el.textContent === 'Lagra ✓') { el.textContent = ''; el.className = 'save-status'; }
   }, 2200);
 }
 
@@ -573,38 +590,54 @@ async function savePredictions() {
     return;
   }
 
-  // Hold lokal kopi i takt
   State.preds = State.preds.filter(p => String(p.user_id) !== String(State.user.id))
                            .concat(rows.map(r => ({ ...r, id: null })));
   setSaveStatus('ok');
 }
 
-async function lockPredictions() {
-  if (!canEdit()) return;
-  if (State.myOrder.length !== State.teams.length) {
-    toast('Du må plassere alle lagene først.', 'err');
-    return;
-  }
-  if (!confirm('Lås inn tabellen? Du kan ikke endre den etterpå.')) return;
-
-  flushSave();
-  await savePredictions();
-
-  const stamp = new Date().toISOString();
+async function setLocked(stamp) {
   const { error } = await db.from('pl_users').update({ locked_at: stamp }).eq('id', State.user.id);
-  if (error) { toast('Klarte ikke låse. Prøv igjen.', 'err'); return; }
-
+  if (error) return false;
   const u = State.users.find(u => String(u.id) === String(State.user.id));
   if (u) u.locked_at = stamp;
   State.user.locked_at = stamp;
   localStorage.setItem(STORE_KEY, JSON.stringify(State.user));
+  return true;
+}
 
+async function lockPredictions() {
+  if (!canEdit()) return;
+  if (State.myOrder.length !== State.teams.length) {
+    toast('Du må plassere alle laga først.', 'err');
+    return;
+  }
+  if (!confirm('Låse inn tabellen? Du kan låse opp att fram til fristen.')) return;
+
+  flushSave();
+  await savePredictions();
+
+  if (!await setLocked(new Date().toISOString())) {
+    toast('Klarte ikkje å låse. Prøv igjen.', 'err');
+    return;
+  }
   toast('Tabellen er låst inn! 🔒');
   renderTipping();
+  window.scrollTo(0, 0);
+}
+
+async function unlockPredictions() {
+  if (!canUnlock()) return;
+  if (!await setLocked(null)) {
+    toast('Klarte ikkje å låse opp. Prøv igjen.', 'err');
+    return;
+  }
+  toast('Tabellen er open att – hugs å låse på nytt! 🔓');
+  renderTipping();
+  window.scrollTo(0, 0);
 }
 
 // ============================================================
-// SPILLERE
+// SPELARAR
 // ============================================================
 function playerList() {
   return Scoring.buildLeaderboard(State.users, State.preds, State.teams);
@@ -619,11 +652,11 @@ function renderPlayers() {
   const rows   = playerList();
   const hasRes = Scoring.hasResults(State.teams);
   document.getElementById('players-count').textContent =
-    `${rows.length} spiller${rows.length === 1 ? '' : 'e'}`;
+    `${rows.length} ${rows.length === 1 ? 'spelar' : 'spelarar'}`;
 
   const el = document.getElementById('players-list');
   if (rows.length === 0) {
-    el.innerHTML = `<div class="empty-state"><p class="empty-title">Ingen er med ennå</p><p>Del linken med gjengen så de kan registrere seg.</p></div>`;
+    el.innerHTML = `<div class="empty-state"><p class="empty-title">Ingen er med enno</p><p>Del lenkja med gjengen så dei kan registrere seg.</p></div>`;
     return;
   }
 
@@ -631,10 +664,10 @@ function renderPlayers() {
     const isMe = String(r.user.id) === String(State.user.id);
     const meta = r.locked
       ? `Låst ${esc(fmtDate(r.user.locked_at))}`
-      : `${r.tipped}/${State.teams.length} lag plassert`;
+      : `${r.tipped}/${State.teams.length} lag plasserte`;
     const right = hasRes
       ? `<div class="pc-pts">${r.total}<span>p</span></div>`
-      : (r.locked ? `<span class="lock-pill locked">Låst</span>` : `<span class="lock-pill">Åpen</span>`);
+      : (r.locked ? `<span class="lock-pill locked">Låst</span>` : `<span class="lock-pill">Open</span>`);
     return `<button class="player-card${isMe ? ' me' : ''}" onclick="openPlayer(${i})">
       <span class="pc-avatar">${esc(initials(r.user.username))}</span>
       <span class="pc-main">
@@ -684,12 +717,12 @@ function renderPlayerDetail(slideDir = 0) {
     ? rows.map((_, i) => `<span class="pd-dot${i === State.playerIdx ? ' on' : ''}"></span>`).join('')
     : '';
 
-  // Skjult før fristen (så ingen kopierer)
+  // Skjult før fristen, så ingen kopierer
   if (!isMe && !canReveal()) {
     body.innerHTML = `<div class="empty-state">
       <div class="empty-lock"><i data-lucide="lock"></i></div>
-      <p class="empty-title">Skjult inntil fristen</p>
-      <p>Tabellen til ${esc(row.user.username)} blir synlig ${esc(fmtDateTime(deadline()))}.</p>
+      <p class="empty-title">Skjult til fristen</p>
+      <p>Tabellen til ${esc(row.user.username)} blir synleg ${esc(fmtDayTime(deadline()))}.</p>
       <p class="mt-8">${row.locked ? '✅ Har låst inn tabellen sin.' : `⏳ Har plassert ${row.tipped}/${State.teams.length} lag.`}</p>
     </div>`;
     if (window.lucide) lucide.createIcons();
@@ -700,8 +733,8 @@ function renderPlayerDetail(slideDir = 0) {
   const order = Scoring.order(State.preds, row.user.id);
   if (order.length === 0) {
     body.innerHTML = `<div class="empty-state">
-      <p class="empty-title">Ingen spådom ennå</p>
-      <p>${esc(row.user.username)} har ikke plassert lagene.</p></div>`;
+      <p class="empty-title">Ingen spådom enno</p>
+      <p>${esc(row.user.username)} har ikkje plassert laga.</p></div>`;
     attachPlayerSwipe(body);
     return;
   }
@@ -714,7 +747,7 @@ function renderPlayerDetail(slideDir = 0) {
        </div>`
     : `<div class="pd-meta">${row.locked
          ? `Låst ${esc(fmtDateTime(row.user.locked_at))}`
-         : `Ikke låst ennå – ${row.tipped}/${State.teams.length} lag plassert`}</div>`;
+         : `Ikkje låst enno – ${row.tipped}/${State.teams.length} lag plasserte`}</div>`;
 
   body.innerHTML = stats + `<div class="pt-list">` + order.map((id, i) => {
     const t = teamById(id);
@@ -730,7 +763,7 @@ function renderPlayerDetail(slideDir = 0) {
   if (window.lucide) lucide.createIcons();
 }
 
-// Sveip venstre/høyre mellom spillere
+// Sveip venstre/høgre mellom spelarar
 let _swipeEl = null, _swipeStart = null;
 function attachPlayerSwipe(el) {
   if (_swipeEl === el) return;
@@ -759,8 +792,8 @@ function renderStats() {
   if (!canReveal()) {
     el.innerHTML = `<div class="empty-state">
       <div class="empty-lock"><i data-lucide="lock"></i></div>
-      <p class="empty-title">Fakta åpner ved fristen</p>
-      <p>Statistikken avslører hva alle har tippa, så den er skjult til ${esc(fmtDateTime(deadline()))}.</p>
+      <p class="empty-title">Fakta opnar ved fristen</p>
+      <p>Statistikken røper kva alle har tippa, så han er skjult til ${esc(fmtDayTime(deadline()))}.</p>
     </div>`;
     if (window.lucide) lucide.createIcons();
     return;
@@ -769,35 +802,32 @@ function renderStats() {
   const s = Stats.build(State.users, State.preds, State.teams);
   if (!s) {
     el.innerHTML = `<div class="empty-state">
-      <p class="empty-title">Ikke nok data ennå</p>
-      <p>Statistikken dukker opp så snart noen har plassert alle ${State.teams.length} laga.</p></div>`;
+      <p class="empty-title">Ikkje nok data enno</p>
+      <p>Statistikken dukkar opp så snart nokon har plassert alle ${State.teams.length} laga.</p></div>`;
     return;
   }
 
   const nm = u => esc(u.username);
-  let h = `<p class="stats-intro">Basert på <strong>${s.playerCount}</strong> komplette tabeller.</p>`;
+  let h = `<p class="stats-intro">Bygd på <strong>${s.playerCount}</strong> komplette tabellar.</p>`;
 
-  // ---- Høydepunkt ------------------------------------------
   const champ = s.champions[0];
   const spoon = s.spoons[0];
-  const boldest = s.outliers[0];
   const mostAgreed = s.agreed[0];
   const mostDivisive = s.divisive[0];
 
   h += `<div class="section-title">Kort fortalt</div><div class="fact-grid">`;
-  if (champ) h += factCard('crown', 'Folkets mester', champ.team,
-    `${champ.firsts} av ${s.playerCount} har dem på 1. plass`);
-  if (spoon) h += factCard('trending-down', 'Dømt til jumboplass', spoon.team,
-    `${spoon.lasts} av ${s.playerCount} har dem sist`);
-  if (mostDivisive) h += factCard('split', 'Mest uenighet', mostDivisive.team,
-    `Fra ${mostDivisive.best.pos}. til ${mostDivisive.worst.pos}. plass`);
-  if (mostAgreed) h += factCard('handshake', 'Størst enighet', mostAgreed.team,
-    `Alle har dem rundt ${fmt1(mostAgreed.avg)}. plass`);
+  if (champ) h += factCard('crown', 'Folkemeisteren', champ.team,
+    `${champ.firsts} av ${s.playerCount} har dei på 1. plass`);
+  if (spoon) h += factCard('trending-down', 'Dømde til jumboplass', spoon.team,
+    `${spoon.lasts} av ${s.playerCount} har dei sist`);
+  if (mostDivisive) h += factCard('split', 'Mest usemje', mostDivisive.team,
+    `Frå ${mostDivisive.best.pos}. til ${mostDivisive.worst.pos}. plass`);
+  if (mostAgreed) h += factCard('handshake', 'Størst semje', mostAgreed.team,
+    `Alle har dei rundt ${fmt1(mostAgreed.avg)}. plass`);
   h += `</div>`;
 
-  // ---- Modigste tips ---------------------------------------
-  h += `<div class="section-title mt-24">Modigste tips</div>
-        <p class="muted tiny mb-10">Størst avstand mellom ett tips og snittet til gjengen.</p>
+  h += `<div class="section-title mt-24">Modigaste tipsa</div>
+        <p class="muted tiny mb-10">Størst avstand mellom eitt tips og snittet til gjengen.</p>
         <div class="card-list">`;
   h += s.outliers.slice(0, 8).map(o => `
     <div class="bold-row">
@@ -806,13 +836,12 @@ function renderStats() {
         <strong>${nm(o.user)}</strong> har ${esc(o.team.name)} på
         <strong>${o.pos}. plass</strong> – snittet er ${fmt1(o.avg)}.
       </div>
-      <span class="bold-gap ${o.dir === 'høyere' ? 'up' : 'down'}">${o.dir === 'høyere' ? '▲' : '▼'} ${fmt1(o.gap)}</span>
+      <span class="bold-gap ${o.dir === 'høgare' ? 'up' : 'down'}">${o.dir === 'høgare' ? '▲' : '▼'} ${fmt1(o.gap)}</span>
     </div>`).join('');
   h += `</div>`;
 
-  // ---- Konsensustabellen -----------------------------------
-  h += `<div class="section-title mt-24">Gjengens fasit</div>
-        <p class="muted tiny mb-10">Snittplasseringa til hvert lag. Trykk på et lag for å se hvem som har dem høyest og lavest.</p>
+  h += `<div class="section-title mt-24">Fasiten til gjengen</div>
+        <p class="muted tiny mb-10">Snittplasseringa til kvart lag. Trykk på eit lag for å sjå kven som har dei høgast og lågast.</p>
         <div class="pt-list">`;
   h += s.consensus.map((c, i) => {
     const zone = zoneFor(i + 1);
@@ -822,34 +851,32 @@ function renderStats() {
         ${crest(c.team, 'crest')}
         <span class="pt-name">${esc(c.team.name)}</span>
         <span class="cons-avg">${fmt1(c.avg)}</span>
-        <span class="cons-spread" title="Spredning">±${fmt1(c.spread)}</span>
+        <span class="cons-spread" title="Spreiing">±${fmt1(c.spread)}</span>
       </div>
       <div class="cons-detail hidden" id="cons-${c.team.id}">
-        <div><span class="cd-lab">Høyest</span> ${nm(c.best.user)} – ${c.best.pos}. plass</div>
-        <div><span class="cd-lab">Lavest</span> ${nm(c.worst.user)} – ${c.worst.pos}. plass</div>
-        <div><span class="cd-lab">Topp 4</span> ${c.top4} av ${s.playerCount} · <span class="cd-lab">Bunn 3</span> ${c.bottom3} av ${s.playerCount}</div>
+        <div><span class="cd-lab">Høgast</span> ${nm(c.best.user)} – ${c.best.pos}. plass</div>
+        <div><span class="cd-lab">Lågast</span> ${nm(c.worst.user)} – ${c.worst.pos}. plass</div>
+        <div><span class="cd-lab">Topp 4</span> ${c.top4} av ${s.playerCount} · <span class="cd-lab">Botn 3</span> ${c.bottom3} av ${s.playerCount}</div>
       </div>
     </div>`;
   }).join('');
   h += `</div>`;
 
-  // ---- Mestertips ------------------------------------------
   if (s.champions.length) {
-    h += `<div class="section-title mt-24">Hvem vinner ligaen?</div><div class="card-list">`;
+    h += `<div class="section-title mt-24">Kven vinn ligaen?</div><div class="card-list">`;
     h += s.champions.map(c => barRow(c.team, c.firsts, s.playerCount,
       c.picks.filter(p => p.pos === 1).map(p => p.user.username))).join('');
     h += `</div>`;
   }
   if (s.spoons.length) {
-    h += `<div class="section-title mt-24">Hvem blir nummer ${State.teams.length}?</div><div class="card-list">`;
+    h += `<div class="section-title mt-24">Kven blir nummer ${State.teams.length}?</div><div class="card-list">`;
     h += s.spoons.map(c => barRow(c.team, c.lasts, s.playerCount,
       c.picks.filter(p => p.pos === State.teams.length).map(p => p.user.username), true)).join('');
     h += `</div>`;
   }
 
-  // ---- Spillerprofiler -------------------------------------
-  h += `<div class="section-title mt-24">Hvem tør å skille seg ut?</div>
-        <p class="muted tiny mb-10">Samla avstand fra gjengens snitt – høyt tall betyr en tabell som stikker seg ut.</p>
+  h += `<div class="section-title mt-24">Kven tør å skilje seg ut?</div>
+        <p class="muted tiny mb-10">Samla avstand frå snittet til gjengen – høgt tal tyder ein tabell som stikk seg ut.</p>
         <div class="card-list">`;
   const maxGap = s.contrarian[0]?.gap || 1;
   h += s.contrarian.map((c, i) => `
@@ -859,24 +886,23 @@ function renderStats() {
       <span class="rr-bar"><span style="width:${Math.max(6, (c.gap / maxGap) * 100)}%"></span></span>
       <span class="rr-val">${fmt1(c.avgGap)}</span>
     </div>`).join('');
-  h += `</div><p class="muted tiny mt-8">Tallet er snittavvik per lag.</p>`;
+  h += `</div><p class="muted tiny mt-8">Talet er snittavvik per lag.</p>`;
 
-  // ---- Like tabeller ---------------------------------------
   if (s.pairs.length) {
     const twin = s.pairs[0];
     const opposite = s.pairs[s.pairs.length - 1];
-    h += `<div class="section-title mt-24">Tvillinger og motpoler</div><div class="fact-grid">`;
+    h += `<div class="section-title mt-24">Tvillingar og motpolar</div><div class="fact-grid">`;
     h += `<div class="fact-card">
             <div class="fc-icon"><i data-lucide="copy"></i></div>
-            <div class="fc-label">Mest like tabeller</div>
+            <div class="fc-label">Mest like tabellar</div>
             <div class="fc-value">${nm(twin.a)} &amp; ${nm(twin.b)}</div>
-            <div class="fc-sub">Bare ${twin.dist} plassers forskjell totalt</div>
+            <div class="fc-sub">Berre ${twin.dist} plassar i skilnad totalt</div>
           </div>
           <div class="fact-card">
             <div class="fc-icon"><i data-lucide="swords"></i></div>
-            <div class="fc-label">Størst uenighet</div>
+            <div class="fc-label">Størst usemje</div>
             <div class="fc-value">${nm(opposite.a)} &amp; ${nm(opposite.b)}</div>
-            <div class="fc-sub">${opposite.dist} plassers forskjell totalt</div>
+            <div class="fc-sub">${opposite.dist} plassar i skilnad totalt</div>
           </div></div>`;
   }
 
@@ -921,7 +947,7 @@ function logout() {
 }
 
 // ============================================================
-// BOOT
+// OPPSTART
 // ============================================================
 document.addEventListener('DOMContentLoaded', init);
 window.addEventListener('pagehide', flushSave);

@@ -1,9 +1,9 @@
 // ============================================================
-// PL-Tipping – Dra-og-slipp for tabellrekkefølge
+// PL-Tipping – Dra-og-slepp for tabellrekkjefølgje
 //
-// Attach(container, onReorder) gjør alle .pt-row inne i container
-// flyttbare via håndtaket [data-grip]. onReorder får den nye
-// rekkefølgen som en liste med data-id-verdier.
+// Attach(container, onReorder) gjer alle .pt-row inne i container
+// flyttbare via handtaket [data-grip]. onReorder får den nye
+// rekkjefølgja som ei liste med data-id-verdiar.
 // ============================================================
 
 const Reorder = (() => {
@@ -16,7 +16,7 @@ const Reorder = (() => {
 
     const rowsOf = () => Array.from(container.querySelectorAll('.pt-row'));
 
-    // Hvor havner rad i hvis raden som dras flyttes fra → til?
+    // Kvar hamnar rad i om raden som blir dregen flyttar seg frå → til?
     function visualIndex(i, from, to) {
       if (i === from) return to;
       if (from < to && i > from && i <= to) return i - 1;
@@ -111,7 +111,7 @@ const Reorder = (() => {
         ids.splice(cur, 0, moved);
         onReorder(ids);
       } else {
-        onReorder(ids);   // gjenoppbygg visningen (nullstiller etiketter)
+        onReorder(ids);   // bygg opp att visinga (nullstiller etikettane)
       }
     }
 

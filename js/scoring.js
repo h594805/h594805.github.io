@@ -1,14 +1,14 @@
 // ============================================================
-// PL-Tipping – Poengberegning og statistikk
+// PL-Tipping – Poengrekning og statistikk
 //
-// Regelen: for hvert lag får du poeng lik hvor mange plasser du
-// bommet med. Tippa du et lag på 5. plass og de endte på 8., får
-// du 3 poeng. Færrast poeng totalt vinner.
+// Regelen: for kvart lag får du poeng lik kor mange plassar du
+// bomma med. Tippa du eit lag på 5. plass og dei enda på 8., får
+// du 3 poeng. Færrast poeng totalt vinn.
 // ============================================================
 
 const Scoring = {
 
-  /** Map: team_id → faktisk plassering (kun lag admin har plassert). */
+  /** Map: team_id → faktisk plassering (berre lag admin har plassert). */
   actualMap(teams) {
     const m = new Map();
     for (const t of teams) {
@@ -21,7 +21,7 @@ const Scoring = {
     return teams.some(t => t.actual_position != null);
   },
 
-  /** Spådommene til én spiller som Map: team_id → plassering. */
+  /** Spådommane til éin spelar som Map: team_id → plassering. */
   predMap(preds, userId) {
     const m = new Map();
     for (const p of preds) {
@@ -30,7 +30,7 @@ const Scoring = {
     return m;
   },
 
-  /** Rekkefølgen til én spiller som liste med team_id, 1. plass først. */
+  /** Rekkjefølgja til éin spelar som liste med team_id, 1. plass først. */
   order(preds, userId) {
     return preds
       .filter(p => String(p.user_id) === String(userId))
@@ -39,7 +39,7 @@ const Scoring = {
   },
 
   /**
-   * Regn ut resultatet til én spiller.
+   * Rekn ut resultatet til éin spelar.
    * → { total, exact, scored, rows: [{team, pred, actual, diff}] }
    */
   scoreUser(preds, userId, teams) {
@@ -65,7 +65,7 @@ const Scoring = {
     return { total, exact, scored, rows };
   },
 
-  /** Tabellen – sortert med færrast poeng øverst. */
+  /** Tabellen – sortert med færrast poeng øvst. */
   buildLeaderboard(users, preds, teams) {
     const rows = users.map(u => {
       const s = this.scoreUser(preds, u.id, teams);
@@ -80,7 +80,7 @@ const Scoring = {
     });
 
     if (!this.hasResults(teams)) {
-      // Ingen resultater ennå – vis alfabetisk, låste øverst
+      // Ingen resultat enno – vis alfabetisk, låste øvst
       rows.sort((a, b) => (b.locked - a.locked) ||
         a.user.username.localeCompare(b.user.username, 'no'));
     } else {
@@ -93,17 +93,17 @@ const Scoring = {
 
 
 // ============================================================
-// STATISTIKK – hva har gjengen samla sett spådd?
+// STATISTIKK – kva har gjengen samla sett spådd?
 // ============================================================
 
 const Stats = {
 
   /**
-   * @returns null hvis ingen har levert komplett tabell, ellers et
-   * objekt med alt fakta-sida trenger.
+   * @returns null om ingen har levert komplett tabell, elles eit
+   * objekt med alt fakta-sida treng.
    */
   build(users, preds, teams) {
-    // Kun spillere med komplett tabell teller i statistikken
+    // Berre spelarar med komplett tabell tel i statistikken
     const players = users
       .map(u => ({ user: u, order: Scoring.order(preds, u.id) }))
       .filter(p => teams.length > 0 && p.order.length === teams.length);
@@ -114,7 +114,7 @@ const Stats = {
     const n    = players.length;
     const last = teams.length;
 
-    // ---- Per lag: alle plasseringer det har fått --------------
+    // ---- Per lag: alle plasseringane det har fått ------------
     const teamStats = teams.map(t => {
       const picks = players.map(p => ({ user: p.user, pos: p.order.indexOf(t.id) + 1 }));
       const positions = picks.map(p => p.pos);
@@ -126,8 +126,8 @@ const Stats = {
         picks,
         avg,
         spread:  Math.sqrt(vari),
-        best:    sorted[0],                  // høyest plassert (lavest tall)
-        worst:   sorted[sorted.length - 1],  // lavest plassert
+        best:    sorted[0],                  // høgast plassert (lågast tal)
+        worst:   sorted[sorted.length - 1],  // lågast plassert
         firsts:  positions.filter(p => p === 1).length,
         lasts:   positions.filter(p => p === last).length,
         top4:    positions.filter(p => p <= 4).length,
@@ -140,7 +140,7 @@ const Stats = {
     // ---- Konsensustabellen -----------------------------------
     const consensus = teamStats.slice().sort((a, b) => a.avg - b.avg);
 
-    // ---- Gjengens største avvik ------------------------------
+    // ---- Dei største avvika i gjengen ------------------------
     const outliers = [];
     for (const p of players) {
       p.order.forEach((tid, i) => {
@@ -151,20 +151,20 @@ const Stats = {
           user: p.user, team: t,
           pos: i + 1, avg,
           gap: Math.abs((i + 1) - avg),
-          dir: (i + 1) < avg ? 'høyere' : 'lavere',
+          dir: (i + 1) < avg ? 'høgare' : 'lågare',
         });
       });
     }
     outliers.sort((a, b) => b.gap - a.gap);
 
-    // ---- Hvor kontrær er hver spiller? -----------------------
+    // ---- Kor kontrær er kvar spelar? -------------------------
     const contrarian = players.map(p => {
       let sum = 0;
       p.order.forEach((tid, i) => { sum += Math.abs((i + 1) - (avgOf.get(tid) ?? 0)); });
       return { user: p.user, gap: sum, avgGap: sum / teams.length };
     }).sort((a, b) => b.gap - a.gap);
 
-    // ---- Mest like / ulike tabeller --------------------------
+    // ---- Mest like / ulike tabellar --------------------------
     const pairs = [];
     for (let i = 0; i < players.length; i++) {
       for (let j = i + 1; j < players.length; j++) {

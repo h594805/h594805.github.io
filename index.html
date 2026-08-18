@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="no">
+<html lang="nn">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0">
@@ -16,11 +16,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://media.api-sports.io" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3">
+  <link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
 
-<!-- Splash screen -->
+<!-- Splash -->
 <div id="splash-screen">
   <img src="images/ball.svg" alt="" id="splash-img">
 </div>
@@ -43,7 +43,7 @@
 <div id="root">
 
 <!-- ======================================================
-     PAGE: AUTH (logg inn / registrer)
+     SIDE: INNLOGGING
      ====================================================== -->
 <div class="page" id="page-auth">
   <div class="full-screen">
@@ -64,8 +64,8 @@
       <div id="login-form">
         <div id="login-error" class="alert alert-error hidden"></div>
         <div class="form-group">
-          <label for="login-username">Navn</label>
-          <input type="text" id="login-username" class="form-input" placeholder="Ditt navn..." autocomplete="username" autocapitalize="words">
+          <label for="login-username">Namn</label>
+          <input type="text" id="login-username" class="form-input" placeholder="Namnet ditt..." autocomplete="username" autocapitalize="words">
         </div>
         <div class="form-group" style="text-align:center">
           <label>PIN-kode (4 siffer)</label>
@@ -81,14 +81,14 @@
       <div id="register-form" class="hidden">
         <div id="reg-error" class="alert alert-error hidden"></div>
         <div class="alert alert-info mb-16">
-          Skriv navnet ditt og velg en PIN-kode. <strong>Husk PIN-koden!</strong>
+          Skriv namnet ditt og vel ein PIN-kode. <strong>Hugs PIN-koden!</strong>
         </div>
         <div class="form-group">
-          <label for="reg-username">Navn</label>
-          <input type="text" id="reg-username" class="form-input" placeholder="F.eks. Gard" autocomplete="username" autocapitalize="words" maxlength="50">
+          <label for="reg-username">Namn</label>
+          <input type="text" id="reg-username" class="form-input" placeholder="T.d. Gard" autocomplete="username" autocapitalize="words" maxlength="50">
         </div>
         <div class="form-group" style="text-align:center">
-          <label>Velg PIN-kode (4 siffer)</label>
+          <label>Vel PIN-kode (4 siffer)</label>
           <div class="pin-dots mb-8" id="register-dots">
             <div class="pin-dot"></div><div class="pin-dot"></div>
             <div class="pin-dot"></div><div class="pin-dot"></div>
@@ -101,7 +101,7 @@
 </div>
 
 <!-- ======================================================
-     PAGE: APP
+     SIDE: APP
      ====================================================== -->
 <div class="page" id="page-app">
   <header class="app-header">
@@ -132,12 +132,12 @@
         <div id="dash-status"></div>
 
         <div class="row-between mb-10">
-          <div class="section-title mb-0">Stillingen</div>
+          <div class="section-title mb-0">Stillinga</div>
           <span class="muted tiny" id="dash-sub"></span>
         </div>
         <div class="leaderboard">
           <div class="lb-header lb-pl">
-            <div></div><div>Navn</div>
+            <div></div><div>Namn</div>
             <div class="ta-c">Blink</div>
             <div class="ta-c">Poeng</div>
           </div>
@@ -145,10 +145,10 @@
         </div>
 
         <details class="scoring-details mt-16">
-          <summary class="scoring-summary">Slik funker det <span class="scoring-toggle-hint">– trykk for å se</span></summary>
+          <summary class="scoring-summary">Slik funkar det <span class="scoring-toggle-hint">– trykk for å sjå</span></summary>
           <div class="scoring-table-wrap">
             <p class="scoring-note mt-8">
-              Alle tipper plasseringa til alle dei 20 laga før sesongstart. Så får du poeng
+              Alle tippar plasseringa til alle dei 20 laga før sesongstart. Så får du poeng
               etter kor mange plassar du bomma med på kvart lag.
             </p>
             <p class="scoring-note">
@@ -156,7 +156,7 @@
               <strong>8. plass</strong>, får du <strong>3 poeng</strong>.
             </p>
             <p class="scoring-note">
-              Når alle 38 rundane er ferdigspelte, <strong>vinner den som har færrast poeng totalt</strong>.
+              Når alle 38 rundane er ferdigspelte, <strong>vinn den som har færrast poeng totalt</strong>.
             </p>
             <div class="example-box">
               <div class="example-row"><span>Arsenal tippa 2. – enda 1.</span><span class="ex-pts">1 p</span></div>
@@ -180,7 +180,7 @@
       <div class="container pad-top">
         <div id="tip-banner"></div>
         <div class="row-between mb-10">
-          <div class="section-title mb-0" id="tip-title">Din tabell</div>
+          <div class="section-title mb-0" id="tip-title">Tabellen din</div>
           <span class="save-status" id="tip-save"></span>
         </div>
         <div id="tip-hint" class="tip-hint">
@@ -191,9 +191,8 @@
       </div>
     </section>
 
-    <!-- === SPILLERE === -->
+    <!-- === SPELARAR === -->
     <section class="app-section hidden" id="section-players">
-      <!-- Liste -->
       <div id="players-list-view">
         <div class="container pad-top">
           <div class="row-between mb-10">
@@ -203,7 +202,7 @@
           <div id="players-list"></div>
         </div>
       </div>
-      <!-- Detalj (sveip mellom spillere) -->
+      <!-- Detalj (sveip mellom spelarar) -->
       <div id="players-detail-view" class="hidden">
         <div class="pd-bar">
           <button class="pd-back" onclick="closePlayer()" aria-label="Tilbake">
@@ -211,8 +210,8 @@
           </button>
           <div class="pd-title" id="pd-name">–</div>
           <div class="pd-nav">
-            <button class="pd-arrow" onclick="stepPlayer(-1)" aria-label="Forrige spiller"><i data-lucide="chevron-left"></i></button>
-            <button class="pd-arrow" onclick="stepPlayer(1)" aria-label="Neste spiller"><i data-lucide="chevron-right"></i></button>
+            <button class="pd-arrow" onclick="stepPlayer(-1)" aria-label="Førre spelar"><i data-lucide="chevron-left"></i></button>
+            <button class="pd-arrow" onclick="stepPlayer(1)" aria-label="Neste spelar"><i data-lucide="chevron-right"></i></button>
           </div>
         </div>
         <div class="pd-dots" id="pd-dots"></div>
@@ -227,7 +226,7 @@
 
   </main>
 
-  <!-- Bunnmeny -->
+  <!-- Botnmeny -->
   <nav class="bottom-nav">
     <button class="nav-btn active" data-page="dashboard">
       <i data-lucide="trophy"></i><span>Tabell</span>
@@ -236,22 +235,21 @@
       <i data-lucide="list-ordered"></i><span>Spå</span>
     </button>
     <button class="nav-btn" data-page="players">
-      <i data-lucide="users"></i><span>Spillere</span>
+      <i data-lucide="users"></i><span>Spelarar</span>
     </button>
     <button class="nav-btn" data-page="stats">
       <i data-lucide="bar-chart-3"></i><span>Fakta</span>
     </button>
   </nav>
 </div>
-<!-- end page-app -->
 
 </div><!-- end root -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<script src="js/config.js?v=3"></script>
-<script src="js/scoring.js?v=3"></script>
-<script src="js/reorder.js?v=3"></script>
-<script src="js/app.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
+<script src="js/scoring.js?v=4"></script>
+<script src="js/reorder.js?v=4"></script>
+<script src="js/app.js?v=4"></script>
 </body>
 </html>

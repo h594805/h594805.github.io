@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="no">
+<html lang="nn">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3">
+  <link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
 
@@ -31,7 +31,7 @@
       </div>
       <button type="submit" id="admin-entry-btn" class="btn btn-gold btn-full">Logg inn</button>
     </form>
-    <div class="ta-c mt-16"><a href="index.html" class="btn btn-ghost btn-sm">← Tilbake til nettstedet</a></div>
+    <div class="ta-c mt-16"><a href="index.html" class="btn btn-ghost btn-sm">← Tilbake til nettstaden</a></div>
   </div>
 </div>
 
@@ -40,55 +40,59 @@
   <header class="app-header">
     <div class="header-logo"><img src="images/ball.svg" alt="" class="header-ball"><span>ADMIN</span></div>
     <span></span>
-    <a href="index.html" class="btn btn-ghost btn-sm" style="justify-self:end">← Nettsted</a>
+    <a href="index.html" class="btn btn-ghost btn-sm" style="justify-self:end">← Nettstad</a>
   </header>
 
   <div class="container" style="padding-top:18px;padding-bottom:60px">
 
     <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto">
       <button class="admin-tab active" data-section="fasit">Fasit</button>
-      <button class="admin-tab" data-section="spillere">Spillere</button>
+      <button class="admin-tab" data-section="spelarar">Spelarar</button>
       <button class="admin-tab" data-section="lag">Lag</button>
-      <button class="admin-tab" data-section="innstillinger">Innstillinger</button>
+      <button class="admin-tab" data-section="innstillingar">Innstillingar</button>
     </div>
 
-    <!-- === FASIT: den faktiske tabellen === -->
+    <!-- === FASIT === -->
     <div id="admin-fasit" class="admin-section">
       <div class="alert alert-info mb-16">
-        Sett laga i den rekkefølgen tabellen faktisk står. Dra i <strong>⠿</strong> eller bruk pilene,
-        og trykk <strong>Lagre fasit</strong>. Du kan oppdatere denne når som helst i løpet av sesongen –
-        spillerne ser da en foreløpig stilling.
+        Set laga i den rekkjefølgja tabellen faktisk står. Dra i <strong>⠿</strong> eller bruk pilene,
+        og trykk <strong>Lagre fasit</strong>. Du kan oppdatere denne når som helst gjennom sesongen –
+        spelarane ser då ei førebels stilling.
       </div>
       <div class="row-between mb-10">
-        <div class="section-title mb-0">Faktisk tabell</div>
+        <div class="section-title mb-0">Den faktiske tabellen</div>
         <span class="muted tiny" id="fasit-status"></span>
       </div>
       <div class="pt-list" id="fasit-list"></div>
       <button class="btn btn-gold btn-full mt-16" onclick="saveActualTable()">Lagre fasit</button>
       <label class="check-line mt-16">
         <input type="checkbox" id="season-finished" onchange="saveFinished()">
-        <span>Sesongen er ferdig – dette er den endelige tabellen</span>
+        <span>Sesongen er ferdig – dette er den endelege tabellen</span>
       </label>
       <button class="btn btn-danger btn-full mt-16" onclick="clearActualTable()">Nullstill fasit</button>
     </div>
 
-    <!-- === SPILLERE === -->
-    <div id="admin-spillere" class="admin-section hidden">
-      <div class="section-title">Registrerte spillere</div>
+    <!-- === SPELARAR === -->
+    <div id="admin-spelarar" class="admin-section hidden">
+      <div class="alert alert-info mb-16">
+        Spelarane kan låse opp tabellen sin sjølv fram til fristen. Etter fristen er det berre du
+        som kan opne opp att.
+      </div>
+      <div class="section-title">Registrerte spelarar</div>
       <div class="card-list" id="admin-users"></div>
     </div>
 
     <!-- === LAG === -->
     <div id="admin-lag" class="admin-section hidden">
       <div class="alert alert-info mb-16">
-        Mangler et klubbmerke? Lim inn en ny bilde-URL her. Tomt felt gir et fargemerke med lagkoden.
+        Manglar eit klubbmerke? Lim inn ei ny bilet-URL her. Tomt felt gjev eit fargemerke med lagkoden.
       </div>
       <div class="card-list" id="admin-teams"></div>
       <button class="btn btn-gold btn-full mt-16" onclick="saveTeams()">Lagre lag</button>
     </div>
 
-    <!-- === INNSTILLINGER === -->
-    <div id="admin-innstillinger" class="admin-section hidden">
+    <!-- === INNSTILLINGAR === -->
+    <div id="admin-innstillingar" class="admin-section hidden">
       <div class="card">
         <div class="form-group">
           <label for="set-season">Sesong</label>
@@ -97,13 +101,13 @@
         <div class="form-group">
           <label for="set-deadline">Tippefrist</label>
           <input type="datetime-local" id="set-deadline" class="form-input">
-          <p class="muted tiny mt-8">Etter fristen kan ingen registrere seg eller endre tabellen sin, og alle spådommer blir synlige.</p>
+          <p class="muted tiny mt-8">Etter fristen kan ingen registrere seg, låse opp eller endre tabellen sin, og alle spådommar blir synlege.</p>
         </div>
         <label class="check-line">
           <input type="checkbox" id="set-reveal">
-          <span>Vis alles tabeller allerede nå (før fristen)</span>
+          <span>Vis tabellane til alle allereie no (før fristen)</span>
         </label>
-        <button class="btn btn-gold btn-full mt-16" onclick="saveSettings()">Lagre innstillinger</button>
+        <button class="btn btn-gold btn-full mt-16" onclick="saveSettings()">Lagre innstillingar</button>
       </div>
     </div>
 
@@ -126,9 +130,9 @@
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js?v=3"></script>
-<script src="js/scoring.js?v=3"></script>
-<script src="js/reorder.js?v=3"></script>
-<script src="js/admin.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
+<script src="js/scoring.js?v=4"></script>
+<script src="js/reorder.js?v=4"></script>
+<script src="js/admin.js?v=4"></script>
 </body>
 </html>

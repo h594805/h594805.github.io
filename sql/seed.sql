@@ -1,10 +1,10 @@
 -- ============================================================
 -- PL-Tipping – Lag, sesongen 2026/27
--- Kjør etter sql/schema.sql
+-- Køyr etter sql/schema.sql
 --
--- logo_url peker på klubbmerkene. Skulle ett merke mangle, kan du
--- lime inn en ny bilde-URL under «Lag» i admin-panelet – appen
--- faller ellers tilbake på et fargemerke med lagkoden.
+-- logo_url peikar på klubbmerka. Manglar eitt merke, kan du lime
+-- inn ei ny bilet-URL under «Lag» i admin-panelet – elles fell
+-- appen tilbake på eit fargemerke med lagkoden.
 -- ============================================================
 
 INSERT INTO pl_teams (id, name, short, color, color2, logo_url, sort_order) VALUES
@@ -36,11 +36,11 @@ ON CONFLICT (id) DO UPDATE SET
   logo_url   = EXCLUDED.logo_url,
   sort_order = EXCLUDED.sort_order;
 
--- Hold sekvensen i takt med de manuelle id-ene
+-- Hald sekvensen i takt med dei manuelle id-ane
 SELECT setval('pl_teams_id_seq', (SELECT MAX(id) FROM pl_teams));
 
--- Sett tippefristen (kan endres i admin-panelet etterpå)
+-- Set tippefristen (kan endrast i admin-panelet etterpå)
 UPDATE pl_settings
    SET season   = '2026/27',
-       deadline = '2026-08-21 18:00:00+02'
+       deadline = '2026-08-21 19:30:00+02'
  WHERE id = 1;

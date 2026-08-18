@@ -1,11 +1,11 @@
 # PL-Tipping – Rekegutta ⚽
 
-Premier League **tabelltipping** for vennegjengen. Alle tipper plasseringa til alle
+Premier League **tabelltipping** for vennegjengen. Alle tippar plasseringa til alle
 20 laga før sesongstart. Du får poeng etter kor mange plassar du bomma med på kvart
 lag – tippa du eit lag på 5. plass og dei enda på 8., får du 3 poeng.
-**Færrast poeng totalt vinner.**
+**Færrast poeng totalt vinn.**
 
-Hosted på GitHub Pages med Supabase som database.
+Ligg på GitHub Pages med Supabase som database.
 
 ---
 
@@ -13,45 +13,47 @@ Hosted på GitHub Pages med Supabase som database.
 
 ### 1. Databasen
 1. Gå til [supabase.com](https://supabase.com) → prosjektet ditt → **SQL Editor**
-2. Kjør `sql/schema.sql` – lager tabellene `pl_teams`, `pl_users`, `pl_predictions`, `pl_settings`
-3. Kjør `sql/seed.sql` – legger inn de 20 laga for 2026/27 og setter tippefristen
+2. Køyr `sql/schema.sql` – lagar `pl_teams`, `pl_users`, `pl_predictions`, `pl_settings`
+3. Køyr `sql/seed.sql` – legg inn dei 20 laga for 2026/27 og set tippefristen
 
-De gamle VM-tabellene (`teams`, `matches`, `app_users`, `predictions` …) blir ikke rørt.
-Alt nytt har prefiks `pl_`.
+### 2. Innstillingar
+Opne `admin.html` → **Innstillingar** og set sesong, tippefrist og om tabellane til dei
+andre skal visast før fristen. `js/config.js` har berre reserveverdiar – databasen bestemmer.
 
-### 2. Innstillinger
-Åpne `admin.html` → **Innstillinger** og sett sesong, tippefrist og om andres tabeller
-skal vises før fristen. `js/config.js` har bare reserveverdier – databasen bestemmer.
-
-### 3. Del linken
-Alle registrerer seg selv med navn + 4-sifret PIN. Ingen nettstedspassord.
+### 3. Del lenkja
+Alle registrerer seg sjølve med namn + 4-sifra PIN. Ikkje noko nettstadpassord.
 
 ---
 
-## Slik brukes sida
+## Slik blir sida brukt
 
-| Fane | Hva den gjør |
+| Fane | Kva han gjer |
 |------|--------------|
-| **Tabell** | Stillingen i konkurransen. Før sesongen: hvem som har låst. Trykk på en spiller for å se tabellen deres. |
-| **Spå** | Din egen tabell. Dra i **⠿** eller bruk pilene for å flytte lag. Lagres automatisk. **Lås inn** når du er fornøyd. |
-| **Spillere** | Alle deltakerne. Trykk på en for å se tabellen deres – sveip venstre/høyre for å bla mellom spillere. |
-| **Fakta** | Statistikk: folkets mester, mest uenighet, modigste tips, gjengens fasit-tabell, hvem som skiller seg mest ut. |
+| **Tabell** | Stillinga i konkurransen. Før sesongen: kven som har låst. Trykk på ein spelar for å sjå tabellen deira. |
+| **Spå** | Din eigen tabell. Dra i **⠿** eller bruk pilene for å flytte lag. Blir lagra automatisk. **Lås inn** når du er nøgd – og lås gjerne opp att seinare. |
+| **Spelarar** | Alle deltakarane. Trykk på ein for å sjå tabellen – sveip venstre/høgre for å bla mellom spelarane. |
+| **Fakta** | Statistikk: folkemeisteren, mest usemje, modigaste tipsa, fasiten til gjengen, kven som skil seg mest ut. |
 
-Andres tabeller og fakta-sida er **skjult til tippefristen** så ingen kan kopiere.
-Kan overstyres i admin.
+Tabellane til dei andre og fakta-sida er **skjulte til tippefristen** så ingen kan kopiere.
+Kan overstyrast i admin.
+
+### Låsing
+Du kan låse og låse opp tabellen din så mange gonger du vil **fram til fristen**.
+Når fristen går ut, blir alle tabellar låste automatisk, og då er det berre admin
+som kan opne opp att.
 
 ---
 
 ## Admin
 
-`admin.html`, passordbeskyttet (SHA-256-hash i `js/config.js`, generer ny i `setup.html`).
+`admin.html`, passordbeskytta (SHA-256-hash i `js/config.js`, lag ny i `setup.html`).
 
-- **Fasit** – legg inn den faktiske tabellen ved å dra laga i rekkefølge. Kan oppdateres
-  gjennom sesongen (spillerne ser da «foreløpig stilling»). Huk av
-  *Sesongen er ferdig* når det er endelig.
-- **Spillere** – lås opp en spiller som har låst for tidlig, eller slett en bruker.
-- **Lag** – rett lagnavn, lagkode eller URL til klubbmerke.
-- **Innstillinger** – sesong, tippefrist, vis alles tabeller nå.
+- **Fasit** – legg inn den faktiske tabellen ved å dra laga i rekkjefølgje. Kan oppdaterast
+  gjennom sesongen (spelarane ser då «førebels stilling»). Kryss av
+  *Sesongen er ferdig* når han er endeleg.
+- **Spelarar** – lås opp ein spelar etter fristen, eller slett ein brukar.
+- **Lag** – rett lagnamn, lagkode eller URL til klubbmerke.
+- **Innstillingar** – sesong, tippefrist, vis alle tabellar no.
 
 ---
 
@@ -75,31 +77,39 @@ poeng = |tippa plassering − faktisk plassering|,  summert over alle 20 lag
 
 ```
 /
-├── index.html          Hovednettsted (SPA)
+├── index.html          Hovudnettstaden (SPA)
 ├── admin.html          Admin-panel
-├── setup.html          Genererer passord-hasher
+├── setup.html          Lagar passord-hash
 ├── css/style.css       Stilark
 ├── js/
-│   ├── config.js       ⚠️ Supabase-nøkler og reserveverdier
-│   ├── app.js          Hoved-app-logikk
-│   ├── scoring.js      Poengberegning + statistikk
-│   ├── reorder.js      Dra-og-slipp for tabellrekkefølge
+│   ├── config.js       ⚠️ Supabase-nøklar og reserveverdiar
+│   ├── app.js          Hovudlogikken
+│   ├── scoring.js      Poengrekning + statistikk
+│   ├── reorder.js      Dra-og-slepp for tabellrekkjefølgje
 │   └── admin.js        Admin-panel
 ├── images/             Ball-logo og favicon
-└── sql/
-    ├── schema.sql      Databaseskjema
-    └── seed.sql        De 20 laga
+├── sql/
+│   ├── schema.sql      Databaseskjema
+│   └── seed.sql        Dei 20 laga
+├── .env                🔒 Postgres-passord – i .gitignore, aldri push
+└── .env.example        Mal for .env
 ```
+
+## Hemmelegheiter
+
+`.env` inneheld Postgres-passordet til Supabase-prosjektet og ligg i `.gitignore`.
+Den fila skal aldri til GitHub. Publishable/anon-nøkkelen er derimot ikkje hemmeleg
+og ligg i `js/config.js` fordi nettlesaren treng han.
 
 ## Teknisk
 
 - **Frontend:** vanilla HTML/CSS/JS, ingen rammeverk, ingen byggesteg
 - **Database:** Supabase (PostgreSQL), anon-nøkkelen er tilgangsporten
 - **Hosting:** GitHub Pages (statisk)
-- **Klubbmerker:** eksterne bilde-URL-er i `pl_teams.logo_url`, med fargemerke som reserve
-- **Mobil:** laget for telefon først – safe-area-støtte, 16px skjemafelt (ingen iOS-zoom),
-  pointer-events-basert dra som ikke krasjer med scrolling
+- **Klubbmerke:** eksterne bilet-URL-ar i `pl_teams.logo_url`, med fargemerke som reserve
+- **Mobil:** laga for telefon først – safe-area-støtte, 16px skjemafelt (ingen iOS-zoom),
+  pointer-events-basert draing som ikkje krasjar med scrolling
 
 ---
 
-*Laget med kjærlighet til fotball og gode venner. Lykke til! 🦐*
+*Laga med kjærleik til fotball og gode vener. Lykke til! 🦐*

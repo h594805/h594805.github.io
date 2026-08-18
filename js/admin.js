@@ -10,7 +10,7 @@ const Admin = {
   users:    [],
   preds:    [],
   settings: null,
-  order:    [],   // team_id i faktisk tabellrekkefølge
+  order:    [],   // team_id i faktisk tabellrekkjefølgje
 };
 
 async function adminSha256(msg) {
@@ -45,13 +45,14 @@ function aCrest(team) {
 }
 
 function aTeamById(id) { return Admin.teams.find(t => String(t.id) === String(id)) || null; }
+function aDate(iso) { return iso ? new Date(iso).toLocaleDateString('nn-NO') : ''; }
 
 // ============================================================
 // INNGANG
 // ============================================================
 async function adminInit() {
   if (!CONFIG.SUPABASE_URL || CONFIG.SUPABASE_URL.includes('DIN-')) {
-    document.body.innerHTML = '<div class="full-screen"><div class="card ta-c">Konfigurer Supabase i js/config.js</div></div>';
+    document.body.innerHTML = '<div class="full-screen"><div class="card ta-c">Set opp Supabase i js/config.js</div></div>';
     return;
   }
   adminDb = createAdminClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
@@ -145,8 +146,8 @@ function renderFasit() {
 
   const placed = Admin.teams.filter(t => t.actual_position != null).length;
   document.getElementById('fasit-status').textContent = placed
-    ? `Lagret ${aEsc(Admin.settings?.table_updated_at ? new Date(Admin.settings.table_updated_at).toLocaleDateString('no-NO') : '')}`
-    : 'Ingen fasit lagret ennå';
+    ? `Lagra ${aDate(Admin.settings?.table_updated_at)}`
+    : 'Ingen fasit lagra enno';
   document.getElementById('season-finished').checked = !!Admin.settings?.season_finished;
 }
 
@@ -159,10 +160,9 @@ function moveActual(teamId, dir) {
 }
 
 async function saveActualTable() {
-  const updates = Admin.order.map((id, i) =>
-    adminDb.from('pl_teams').update({ actual_position: i + 1 }).eq('id', id));
-  const results = await Promise.all(updates);
-  if (results.some(r => r.error)) { aToast('Noe gikk galt ved lagring.', 'err'); return; }
+  const results = await Promise.all(Admin.order.map((id, i) =>
+    adminDb.from('pl_teams').update({ actual_position: i + 1 }).eq('id', id)));
+  if (results.some(r => r.error)) { aToast('Noko gjekk gale under lagringa.', 'err'); return; }
 
   const stamp = new Date().toISOString();
   await adminDb.from('pl_settings').update({ table_updated_at: stamp }).eq('id', 1);
@@ -170,36 +170,36 @@ async function saveActualTable() {
   Admin.order.forEach((id, i) => { const t = aTeamById(id); if (t) t.actual_position = i + 1; });
 
   renderFasit();
-  aToast('Fasit lagret ✓');
+  aToast('Fasit lagra ✓');
 }
 
 async function clearActualTable() {
-  if (!confirm('Nullstille fasiten? Alle poeng forsvinner til du legger den inn på nytt.')) return;
+  if (!confirm('Nullstille fasiten? Alle poeng forsvinn til du legg han inn på nytt.')) return;
   const { error } = await adminDb.from('pl_teams').update({ actual_position: null }).gt('id', 0);
-  if (error) { aToast('Klarte ikke nullstille.', 'err'); return; }
+  if (error) { aToast('Klarte ikkje å nullstille.', 'err'); return; }
   Admin.teams.forEach(t => { t.actual_position = null; });
   await adminDb.from('pl_settings').update({ season_finished: false }).eq('id', 1);
   if (Admin.settings) Admin.settings.season_finished = false;
   buildActualOrder();
   renderFasit();
-  aToast('Fasit nullstilt');
+  aToast('Fasiten er nullstilt');
 }
 
 async function saveFinished() {
   const val = document.getElementById('season-finished').checked;
   const { error } = await adminDb.from('pl_settings').update({ season_finished: val }).eq('id', 1);
-  if (error) { aToast('Klarte ikke lagre.', 'err'); return; }
+  if (error) { aToast('Klarte ikkje å lagre.', 'err'); return; }
   if (Admin.settings) Admin.settings.season_finished = val;
-  aToast(val ? 'Sesongen er markert som ferdig 🏆' : 'Merket som pågående');
+  aToast(val ? 'Sesongen er merkt som ferdig 🏆' : 'Merkt som pågåande');
 }
 
 // ============================================================
-// SPILLERE
+// SPELARAR
 // ============================================================
 function renderUsers() {
   const el = document.getElementById('admin-users');
   if (Admin.users.length === 0) {
-    el.innerHTML = '<div class="empty-state"><p class="empty-title">Ingen spillere ennå</p></div>';
+    el.innerHTML = '<div class="empty-state"><p class="empty-title">Ingen spelarar enno</p></div>';
     return;
   }
   el.innerHTML = Admin.users.map(u => {
@@ -209,11 +209,9 @@ function renderUsers() {
       <div class="au-main">
         <div class="au-name">${aEsc(u.username)}</div>
         <div class="au-meta">${count}/${Admin.teams.length} lag ·
-          ${u.locked_at ? 'låst ' + new Date(u.locked_at).toLocaleDateString('no-NO') : 'ikke låst'}</div>
+          ${u.locked_at ? 'låst ' + aDate(u.locked_at) : 'ikkje låst'}</div>
       </div>
-      ${u.locked_at
-        ? `<button class="btn btn-outline btn-sm" onclick="unlockUser(${u.id})">Lås opp</button>`
-        : ''}
+      ${u.locked_at ? `<button class="btn btn-outline btn-sm" onclick="unlockUser(${u.id})">Lås opp</button>` : ''}
       <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">Slett</button>
     </div>`;
   }).join('');
@@ -221,22 +219,22 @@ function renderUsers() {
 
 async function unlockUser(id) {
   const { error } = await adminDb.from('pl_users').update({ locked_at: null }).eq('id', id);
-  if (error) { aToast('Klarte ikke låse opp.', 'err'); return; }
+  if (error) { aToast('Klarte ikkje å låse opp.', 'err'); return; }
   const u = Admin.users.find(u => u.id === id);
   if (u) u.locked_at = null;
   renderUsers();
-  aToast('Låst opp – spilleren kan endre igjen');
+  aToast('Låst opp – spelaren kan endre igjen');
 }
 
 async function deleteUser(id) {
-  const name = Admin.users.find(u => u.id === id)?.username || 'spilleren';
-  if (!confirm(`Slette ${name}? Spådommene forsvinner også.`)) return;
+  const name = Admin.users.find(u => u.id === id)?.username || 'spelaren';
+  if (!confirm(`Slette ${name}? Spådommane forsvinn òg.`)) return;
   const { error } = await adminDb.from('pl_users').delete().eq('id', id);
-  if (error) { aToast('Klarte ikke slette.', 'err'); return; }
+  if (error) { aToast('Klarte ikkje å slette.', 'err'); return; }
   Admin.users = Admin.users.filter(u => u.id !== id);
   Admin.preds = Admin.preds.filter(p => String(p.user_id) !== String(id));
   renderUsers();
-  aToast('Spiller slettet');
+  aToast('Spelaren er sletta');
 }
 
 // ============================================================
@@ -247,8 +245,8 @@ function renderTeams() {
     <div class="admin-team-row">
       ${aCrest(t)}
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px">
-        <input class="at-input" id="tn-${t.id}" value="${aEsc(t.name)}" placeholder="Lagnavn">
-        <input class="at-input" id="tl-${t.id}" value="${aEsc(t.logo_url || '')}" placeholder="URL til klubbmerke (valgfritt)">
+        <input class="at-input" id="tn-${t.id}" value="${aEsc(t.name)}" placeholder="Lagnamn">
+        <input class="at-input" id="tl-${t.id}" value="${aEsc(t.logo_url || '')}" placeholder="URL til klubbmerke (valfritt)">
       </div>
       <input class="at-input" id="ts-${t.id}" value="${aEsc(t.short)}" maxlength="4"
              style="width:56px;text-align:center;flex-shrink:0" placeholder="KODE">
@@ -256,22 +254,21 @@ function renderTeams() {
 }
 
 async function saveTeams() {
-  const updates = Admin.teams.map(t => {
+  const results = await Promise.all(Admin.teams.map(t => {
     const name  = document.getElementById('tn-' + t.id).value.trim() || t.name;
     const logo  = document.getElementById('tl-' + t.id).value.trim() || null;
     const short = (document.getElementById('ts-' + t.id).value.trim() || t.short).toUpperCase();
     t.name = name; t.logo_url = logo; t.short = short;
     return adminDb.from('pl_teams').update({ name, logo_url: logo, short }).eq('id', t.id);
-  });
-  const results = await Promise.all(updates);
-  if (results.some(r => r.error)) { aToast('Noe gikk galt ved lagring.', 'err'); return; }
+  }));
+  if (results.some(r => r.error)) { aToast('Noko gjekk gale under lagringa.', 'err'); return; }
   renderTeams();
   renderFasit();
-  aToast('Lag lagret ✓');
+  aToast('Laga er lagra ✓');
 }
 
 // ============================================================
-// INNSTILLINGER
+// INNSTILLINGAR
 // ============================================================
 function toLocalInput(iso) {
   if (!iso) return '';
@@ -298,12 +295,12 @@ async function saveSettings() {
   };
 
   const { error } = await adminDb.from('pl_settings').update(payload).eq('id', 1);
-  if (error) { aToast('Klarte ikke lagre.', 'err'); return; }
+  if (error) { aToast('Klarte ikkje å lagre.', 'err'); return; }
   Admin.settings = { ...(Admin.settings || { id: 1 }), ...payload };
-  aToast('Innstillinger lagret ✓');
+  aToast('Innstillingane er lagra ✓');
 }
 
 // ============================================================
-// BOOT
+// OPPSTART
 // ============================================================
 document.addEventListener('DOMContentLoaded', adminInit);

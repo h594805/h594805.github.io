@@ -1,8 +1,8 @@
 -- ============================================================
 -- PL-Tipping (tabelltipping) – Databaseskjema
--- Kjør dette i Supabase SQL Editor, deretter sql/seed.sql
+-- Køyr dette i Supabase SQL Editor, deretter sql/seed.sql
 --
--- Merk: dette rører IKKE de gamle VM-tabellene (teams, matches,
+-- Merk: dette rører IKKJE dei gamle VM-tabellane (teams, matches,
 -- app_users, predictions ...). Alt nytt har prefiks pl_.
 -- ============================================================
 
@@ -14,20 +14,20 @@ CREATE TABLE IF NOT EXISTS pl_teams (
   color           VARCHAR(9)  NOT NULL,   -- primærfarge (hex)
   color2          VARCHAR(9),             -- sekundærfarge (hex)
   logo_url        TEXT,                   -- klubbmerke (tomt = fargemerke)
-  actual_position INT,                    -- faktisk plassering (admin setter)
+  actual_position INT,                    -- faktisk plassering (admin set)
   sort_order      INT
 );
 
--- ---- Brukere (egen innlogging – IKKE Supabase Auth) --------
+-- ---- Brukarar (eiga innlogging – IKKJE Supabase Auth) ------
 CREATE TABLE IF NOT EXISTS pl_users (
   id         SERIAL PRIMARY KEY,
   username   VARCHAR(50) UNIQUE NOT NULL,
   pin_hash   VARCHAR(64) NOT NULL,        -- SHA-256 hex av PIN
-  locked_at  TIMESTAMPTZ,                 -- satt når spilleren låser tabellen sin
+  locked_at  TIMESTAMPTZ,                 -- sett når spelaren låser tabellen sin
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ---- Spådommer: én rad per lag per spiller -----------------
+-- ---- Spådommar: éi rad per lag per spelar -----------------
 CREATE TABLE IF NOT EXISTS pl_predictions (
   id         SERIAL PRIMARY KEY,
   user_id    INT REFERENCES pl_users(id) ON DELETE CASCADE,
@@ -39,20 +39,20 @@ CREATE TABLE IF NOT EXISTS pl_predictions (
 
 CREATE INDEX IF NOT EXISTS pl_predictions_user_idx ON pl_predictions (user_id);
 
--- ---- Innstillinger (én rad) --------------------------------
+-- ---- Innstillingar (éi rad) -------------------------------
 CREATE TABLE IF NOT EXISTS pl_settings (
   id                  INT PRIMARY KEY DEFAULT 1,
   season              VARCHAR(20)  DEFAULT '2026/27',
   deadline            TIMESTAMPTZ,
-  reveal_predictions  BOOLEAN DEFAULT FALSE,  -- vis andres tabeller før fristen
-  season_finished     BOOLEAN DEFAULT FALSE,  -- tabellen er endelig
+  reveal_predictions  BOOLEAN DEFAULT FALSE,  -- vis tabellane til andre før fristen
+  season_finished     BOOLEAN DEFAULT FALSE,  -- tabellen er endeleg
   table_updated_at    TIMESTAMPTZ
 );
 
 INSERT INTO pl_settings (id) VALUES (1) ON CONFLICT DO NOTHING;
 
 -- ============================================================
--- Sikkerhet: RLS av + tilgang for anon-nøkkelen
+-- Tryggleik: RLS av + tilgang for anon-nøkkelen
 -- (privat venneside – anon-nøkkelen er tilgangsporten)
 -- ============================================================
 ALTER TABLE pl_teams       DISABLE ROW LEVEL SECURITY;
