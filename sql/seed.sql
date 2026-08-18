@@ -14,7 +14,7 @@ INSERT INTO pl_teams (id, name, short, color, color2, logo_url, sort_order) VALU
   ( 4, 'Brentford',              'BRE', '#E30613', '#FFFFFF', 'https://media.api-sports.io/football/teams/55.png',   4),
   ( 5, 'Brighton & Hove Albion', 'BHA', '#0057B8', '#FFFFFF', 'https://media.api-sports.io/football/teams/51.png',   5),
   ( 6, 'Chelsea',                'CHE', '#034694', '#FFFFFF', 'https://media.api-sports.io/football/teams/49.png',   6),
-  ( 7, 'Coventry City',          'COV', '#5BC2E7', '#003049', 'https://media.api-sports.io/football/teams/1350.png', 7),
+  ( 7, 'Coventry City',          'COV', '#5BC2E7', '#003049', 'https://media.api-sports.io/football/teams/1346.png', 7),
   ( 8, 'Crystal Palace',         'CRY', '#1B458F', '#C4122E', 'https://media.api-sports.io/football/teams/52.png',   8),
   ( 9, 'Everton',                'EVE', '#003399', '#FFFFFF', 'https://media.api-sports.io/football/teams/45.png',   9),
   (10, 'Fulham',                 'FUL', '#1B1B1B', '#CC0000', 'https://media.api-sports.io/football/teams/36.png',  10),

@@ -34,7 +34,7 @@ const Reorder = (() => {
           : (vi === i ? '' : `translateY(${(vi - i) * step}px)`);
         const posEl = row.querySelector('.pt-pos');
         if (posEl) posEl.textContent = vi + 1;
-        row.classList.remove('zone-ucl', 'zone-uel', 'zone-uec', 'zone-rel');
+        row.classList.remove('zone-ucl', 'zone-uel', 'zone-rel');
         const z = zoneFor(vi + 1);
         if (z) row.classList.add(z);
       });

@@ -21,7 +21,6 @@ const CONFIG = {
   ZONES: [
     { from: 1,  to: 4,  cls: 'zone-ucl', label: 'Meisterligaen' },
     { from: 5,  to: 5,  cls: 'zone-uel', label: 'Europaligaen'  },
-    { from: 6,  to: 6,  cls: 'zone-uec', label: 'Conference'    },
     { from: 18, to: 20, cls: 'zone-rel', label: 'Nedrykk'       },
   ],
 
