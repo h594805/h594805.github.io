@@ -4,9 +4,9 @@
 // ============================================================
 
 const CONFIG = {
-  // --- Supabase ---
-  SUPABASE_URL:      'https://kblsizgfnvedyxwbhdos.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtibHNpemdmbnZlZHl4d2JoZG9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NzA1MDAsImV4cCI6MjA5NTU0NjUwMH0.McaWy1ogj_jWDaTQFYwMb1nnsdACYs8k-wx3sDBqSqU',
+  // --- Supabase (prosjekt: pl-tipping, org: Rekegutta) ---
+  SUPABASE_URL:      'https://fhlkpbtznkgrkmwdjmyr.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_JVsRztHtcgfZHdwnWvxLoA_fg93037r',
 
   // Ingen nettstedspassord – hvem som helst med linken kan gå inn
   ADMIN_PASSWORD_HASH: '6d9ea5efaf7a7db5f966c4587ae0639d0fa12a80f658a69725df7411e6427fa8',
