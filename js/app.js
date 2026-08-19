@@ -14,6 +14,12 @@ const State = {
   myOrder:   [],     // team_id i rekkjefølgje, 1. plass først
   page:      'dashboard',
   playerIdx: -1,     // kven som blir vist i detaljvisninga
+
+  // --- Bonusspørsmål ---
+  bonusOn:      false,  // false om tabellane ikkje finst i databasen enno
+  bonusQ:       [],     // spørsmåla
+  bonusPicks:   [],     // svara til alle spelarar
+  bonusCorrect: [],     // fasit (kan vere tom heile sesongen)
 };
 
 const STORE_KEY = 'pltipping_user';
@@ -88,7 +94,7 @@ function toast(msg, kind = 'ok') {
 }
 
 // ============================================================
-// FRIST OG LÅS
+// FRIST
 // ============================================================
 function deadline() {
   return State.settings?.deadline ? new Date(State.settings.deadline) : CONFIG.DEADLINE;
@@ -109,12 +115,25 @@ function deadlineText() {
 function me() {
   return State.users.find(u => String(u.id) === String(State.user?.id)) || State.user;
 }
-function iAmLocked()  { return !!me()?.locked_at; }
-function canEdit()    { return !iAmLocked() && !deadlinePassed(); }
-/** Kan ein låse opp att sjølv? Ja, heilt fram til fristen. */
-function canUnlock()  { return iAmLocked() && !deadlinePassed(); }
-/** Kan ein sjå tabellane til dei andre? */
+/** Alt står ope og blir autolagra heilt fram til fristen. */
+function canEdit()    { return !deadlinePassed(); }
+/** Kan ein sjå tabellane og bonussvara til dei andre? */
 function canReveal()  { return deadlinePassed() || !!State.settings?.reveal_predictions; }
+
+/** Bonuskonteksten som Scoring.buildLeaderboard vil ha. */
+function bonusCtx() {
+  if (!State.bonusOn) return null;
+  return {
+    questions:  State.bonusQ,
+    picks:      State.bonusPicks,
+    correctMap: BonusScore.correctMap(State.bonusCorrect),
+  };
+}
+
+function myBonusScore() {
+  return BonusScore.scoreUser(State.bonusQ, State.bonusPicks,
+    BonusScore.correctMap(State.bonusCorrect), State.user.id);
+}
 
 // ============================================================
 // OPPSTART
@@ -294,23 +313,51 @@ async function loadTeams() {
   State.teams = data || [];
 }
 async function loadUsers() {
-  const { data } = await db.from('pl_users').select('id, username, locked_at, created_at').order('id');
+  const { data } = await db.from('pl_users').select('id, username, created_at').order('id');
   State.users = data || [];
 }
-async function loadPredictions() {
-  // Sidevis lasting – PostgREST gjev maks 1000 rader per kall
+/** Sidevis lasting – PostgREST gjev maks 1000 rader per kall. */
+async function fetchAll(table) {
   const size = 1000;
   let from = 0, all = [];
   while (true) {
-    const { data, error } = await db.from('pl_predictions')
+    const { data, error } = await db.from(table)
       .select('*').order('id').range(from, from + size - 1);
-    if (error) { console.error(error); break; }
+    if (error) return { rows: all, error };
     if (!data || data.length === 0) break;
     all = all.concat(data);
     if (data.length < size) break;
     from += size;
   }
-  State.preds = all;
+  return { rows: all, error: null };
+}
+
+async function loadPredictions() {
+  const { rows, error } = await fetchAll('pl_predictions');
+  if (error) console.error(error);
+  State.preds = rows;
+}
+
+async function loadBonus() {
+  const [q, picks, correct] = await Promise.all([
+    db.from('pl_bonus').select('*').eq('active', true).order('sort_order').order('key'),
+    fetchAll('pl_bonus_picks'),
+    fetchAll('pl_bonus_correct'),
+  ]);
+
+  // Finst ikkje tabellane, er sql/bonus.sql ikkje køyrd enno.
+  // Då gøymer vi bonus heilt i staden for å krasje.
+  if (q.error) {
+    console.warn('Bonusspørsmål er ikkje sette opp i databasen enno.', q.error.message);
+    State.bonusOn = false;
+    State.bonusQ = []; State.bonusPicks = []; State.bonusCorrect = [];
+    return;
+  }
+
+  State.bonusOn      = true;
+  State.bonusQ       = q.data || [];
+  State.bonusPicks   = picks.rows;
+  State.bonusCorrect = correct.rows;
 }
 
 function buildMyOrder() {
@@ -323,8 +370,9 @@ async function startApp() {
   showPage('app');
   document.getElementById('header-username').textContent = State.user.username;
 
-  await Promise.all([loadSettings(), loadTeams(), loadUsers(), loadPredictions()]);
+  await Promise.all([loadSettings(), loadTeams(), loadUsers(), loadPredictions(), loadBonus()]);
   buildMyOrder();
+  document.getElementById('nav-bonus')?.classList.toggle('hidden', !State.bonusOn);
 
   const season = State.settings?.season || CONFIG.SEASON;
   document.getElementById('header-season').textContent = season.replace(/^20/, '');
@@ -356,6 +404,8 @@ function setupNav() {
 
 function navigateTo(page) {
   if (State.page === 'tipping' && page !== 'tipping') flushSave();
+  if (State.page === 'bonus'   && page !== 'bonus')   flushBonusSave();
+  if (page === 'bonus' && !State.bonusOn) page = 'dashboard';
   State.page = page;
   if (page !== 'players') State.playerIdx = -1;
 
@@ -367,6 +417,7 @@ function navigateTo(page) {
 
   if      (page === 'dashboard') renderDashboard();
   else if (page === 'tipping')   renderTipping();
+  else if (page === 'bonus')     renderBonus();
   else if (page === 'players')   renderPlayers();
   else if (page === 'stats')     renderStats();
 
@@ -378,7 +429,7 @@ function navigateTo(page) {
 // ============================================================
 function renderDashboard() {
   const hasRes = Scoring.hasResults(State.teams);
-  const lb   = Scoring.buildLeaderboard(State.users, State.preds, State.teams);
+  const lb   = Scoring.buildLeaderboard(State.users, State.preds, State.teams, bonusCtx());
   const mine = lb.find(r => String(r.user.id) === String(State.user.id));
   const myRank = mine ? lb.indexOf(mine) + 1 : 0;
 
@@ -408,16 +459,30 @@ function renderDashboard() {
     const left = deadlineText();
     statusEl.innerHTML = deadlinePassed()
       ? `<div class="alert alert-info mb-16">Sesongen er i gang. Poenga dukkar opp her så snart tabellen blir lagt inn.</div>`
-      : `<div class="alert alert-info mb-16">Tippefrist <strong>${esc(fmtDayTime(deadline()))}</strong>${left ? ` – ${esc(left)} igjen` : ''}. Hugs å låse tabellen din!</div>`;
+      : `<div class="alert alert-info mb-16">Tippefrist <strong>${esc(fmtDayTime(deadline()))}</strong>${left ? ` – ${esc(left)} igjen` : ''}. Alt blir lagra automatisk fram til då.</div>`;
   } else if (!State.settings?.season_finished) {
     statusEl.innerHTML = `<div class="alert alert-warning mb-16">Førebels stilling – bygd på tabellen per ${esc(fmtDate(State.settings?.table_updated_at) || 'no')}${done < State.teams.length ? ` (${done}/${State.teams.length} lag lagt inn)` : ''}.</div>`;
   } else {
     statusEl.innerHTML = `<div class="alert alert-success mb-16">Sesongen er ferdig – dette er den endelege stillinga. 🏆</div>`;
   }
 
+  // Rekneskapen min, når bonusen faktisk har gjeve utslag
+  if (hasRes && mine && mine.bonus > 0) {
+    statusEl.innerHTML += `<div class="bonus-breakdown mb-16">
+      <span>${mine.table} bompoeng</span>
+      <span class="bb-minus">− ${mine.bonus} bonus</span>
+      <span class="bb-eq">= ${mine.total} p</span>
+    </div>`;
+  }
+
+  const nQ = State.bonusQ.length;
+  document.getElementById('lb-h3').textContent = hasRes ? 'Blink' : 'Lag';
+  document.getElementById('lb-h4').textContent = hasRes ? 'Poeng' : (State.bonusOn ? 'Bonus' : '');
+
+  const complete = lb.filter(r => r.complete).length;
   document.getElementById('dash-sub').textContent = hasRes
     ? 'Færrast poeng vinn'
-    : `${State.users.filter(u => u.locked_at).length}/${State.users.length} har låst`;
+    : `${complete}/${State.users.length} har fullført tabellen`;
 
   const showLast = hasRes && lb.length >= 4;
   document.getElementById('dash-leaderboard').innerHTML = lb.length === 0
@@ -429,9 +494,7 @@ function renderDashboard() {
       const right = hasRes
         ? `<div class="lb-cell">${row.exact}</div><div class="lb-pts${rankCls}">${row.total}</div>`
         : `<div class="lb-cell">${row.tipped}/${State.teams.length}</div>
-           <div class="lb-cell">${row.locked
-              ? '<span class="lock-pill locked">Låst</span>'
-              : '<span class="lock-pill">Open</span>'}</div>`;
+           <div class="lb-cell">${State.bonusOn ? `${row.answered}/${nQ}` : ''}</div>`;
       return `<div class="lb-row lb-pl${isMe ? ' me' : ''}${isLast ? ' lb-last' : ''}"
                    onclick="openPlayerById('${row.user.id}')">
         <div class="lb-rank${rankCls}">${hasRes ? i + 1 : ''}</div>
@@ -450,21 +513,12 @@ function renderTipping() {
   const hasRes   = Scoring.hasResults(State.teams);
 
   const banner = document.getElementById('tip-banner');
-  if (iAmLocked() && !deadlinePassed()) {
-    banner.innerHTML = `<div class="alert alert-success mb-16">
-      Tabellen din er låst ${esc(fmtDateTime(me().locked_at))}.
-      Du kan låse opp att og endre heilt fram til fristen ${esc(fmtDayTime(deadline()))}.</div>`;
-  } else if (iAmLocked()) {
-    banner.innerHTML = `<div class="alert alert-success mb-16">
-      Tabellen din er låst ${esc(fmtDateTime(me().locked_at))}. Lykke til! 🤞</div>`;
-  } else if (deadlinePassed()) {
-    banner.innerHTML = `<div class="alert alert-warning mb-16">
-      Fristen har gått ut – tabellen din er låst automatisk.</div>`;
-  } else {
-    banner.innerHTML = `<div class="alert alert-info mb-16">
-      Set laga i den rekkjefølgja du trur tabellen endar.
-      Endringar blir lagra automatisk fram til du låser.</div>`;
-  }
+  banner.innerHTML = deadlinePassed()
+    ? `<div class="alert alert-warning mb-16">
+        Fristen har gått ut – tabellen din er låst. Lykke til! 🤞</div>`
+    : `<div class="alert alert-info mb-16">
+        Set laga i den rekkjefølgja du trur tabellen endar.
+        Alt blir lagra automatisk heilt fram til fristen ${esc(fmtDayTime(deadline()))}.</div>`;
 
   document.getElementById('tip-hint').classList.toggle('hidden', !editable);
   document.getElementById('tip-title').textContent = editable ? 'Tabellen din' : 'Tabellen din (låst)';
@@ -486,21 +540,14 @@ function renderTipping() {
 
   const actions = document.getElementById('tip-actions');
   if (editable) {
-    actions.innerHTML = `
-      <button class="btn btn-gold btn-full mt-16" onclick="lockPredictions()">
-        <i data-lucide="lock"></i> Lås inn tabellen
-      </button>
-      <p class="muted tiny ta-c mt-8">Du kan låse opp att så lenge fristen ikkje har gått ut.</p>`;
-  } else if (canUnlock()) {
-    actions.innerHTML = `
-      <button class="btn btn-outline btn-full mt-16" onclick="unlockPredictions()">
-        <i data-lucide="lock-open"></i> Lås opp og endre
-      </button>
-      <p class="muted tiny ta-c mt-8">Fristen går ut ${esc(fmtDayTime(deadline()))}.</p>`;
+    actions.innerHTML = `<p class="muted tiny ta-c mt-16">
+      Ingenting å låse – rekkjefølgja du ser her er den som gjeld når fristen går ut.</p>`;
   } else if (hasRes) {
     const s = Scoring.scoreUser(State.preds, State.user.id, State.teams);
-    actions.innerHTML = `<div class="score-summary mt-16">
+    const b = State.bonusOn ? myBonusScore() : { deduction: 0 };
+    actions.innerHTML = `<div class="score-summary mt-16${b.deduction ? ' ss-3' : ''}">
       <div><span class="ss-val">${s.total}</span><span class="ss-lab">bompoeng</span></div>
+      ${b.deduction ? `<div><span class="ss-val ss-minus">−${b.deduction}</span><span class="ss-lab">bonus</span></div>` : ''}
       <div><span class="ss-val">${s.exact}</span><span class="ss-lab">på blinken</span></div>
     </div>`;
   } else {
@@ -595,52 +642,239 @@ async function savePredictions() {
   setSaveStatus('ok');
 }
 
-async function setLocked(stamp) {
-  const { error } = await db.from('pl_users').update({ locked_at: stamp }).eq('id', State.user.id);
-  if (error) return false;
-  const u = State.users.find(u => String(u.id) === String(State.user.id));
-  if (u) u.locked_at = stamp;
-  State.user.locked_at = stamp;
-  localStorage.setItem(STORE_KEY, JSON.stringify(State.user));
-  return true;
+// ============================================================
+// BONUS – prisar og ville tips
+// ============================================================
+function renderBonus() {
+  const editable = canEdit();
+  const cm       = BonusScore.correctMap(State.bonusCorrect);
+  const graded   = BonusScore.hasResults(cm);
+  const mine     = BonusScore.scoreUser(State.bonusQ, State.bonusPicks, cm, State.user.id);
+  const maxDed   = BonusScore.maxDeduction(State.bonusQ);
+
+  document.getElementById('bonus-title').textContent =
+    editable ? 'Bonusspørsmål' : 'Bonusspørsmål (låst)';
+
+  const banner = document.getElementById('bonus-banner');
+  if (graded) {
+    banner.innerHTML = `<div class="alert alert-success mb-16">
+      Du hadde <strong>${mine.hits}</strong> rette og fekk
+      <strong>${mine.deduction} poeng</strong> i frådrag.</div>`;
+  } else if (editable) {
+    banner.innerHTML = `<div class="alert alert-info mb-16">
+      Kvart rette svar <strong>trekk poeng frå totalen din</strong> – opp til
+      ${maxDed} poeng til saman. Du treng ikkje svare på alt, og blanke svar
+      kostar ingenting. Alt blir lagra automatisk fram til fristen
+      ${esc(fmtDayTime(deadline()))}.</div>`;
+  } else {
+    banner.innerHTML = `<div class="alert alert-warning mb-16">
+      Fristen har gått ut – svara dine er låste. Frådraget kjem så snart
+      fasiten er lagt inn.</div>`;
+  }
+
+  const body = document.getElementById('bonus-body');
+  if (State.bonusQ.length === 0) {
+    body.innerHTML = `<div class="empty-state">
+      <p class="empty-title">Ingen bonusspørsmål enno</p>
+      <p>Dei dukkar opp her så snart dei er lagde inn.</p></div>`;
+    return;
+  }
+
+  const groups = [
+    { cat: 'pris', title: 'Prisar',      sub: 'Kven stikk av med heider og ære?' },
+    { cat: 'vill', title: 'Ville tips',  sub: 'Reine gjettekonkurransen – prøv deg!' },
+  ];
+
+  body.innerHTML = groups.map(g => {
+    const qs = State.bonusQ.filter(q => q.category === g.cat);
+    if (qs.length === 0) return '';
+    return `<div class="section-title mt-24">${esc(g.title)}</div>
+      <p class="muted tiny mb-10">${esc(g.sub)}</p>
+      <div class="bonus-list">${qs.map(q => bonusRow(q, mine, editable, cm)).join('')}</div>`;
+  }).join('');
+
+  // Svarfelta bind seg sjølve – ingen inline onchange
+  body.querySelectorAll('[data-bq]').forEach(el => {
+    el.addEventListener('change', () => setBonusAnswer(el.dataset.bq, el.value, el));
+    if (el.tagName === 'INPUT') {
+      el.addEventListener('input', () => schedBonusSave(el.dataset.bq, el.value));
+    }
+  });
+
+  const foot = document.createElement('p');
+  foot.className = 'muted tiny ta-c mt-16';
+  foot.id = 'bonus-count';
+  body.appendChild(foot);
+  renderBonusCount();
+
+  if (canReveal()) body.appendChild(bonusCrowdBlock(cm));
+  if (window.lucide) lucide.createIcons();
 }
 
-async function lockPredictions() {
-  if (!canEdit()) return;
-  if (State.myOrder.length !== State.teams.length) {
-    toast('Du må plassere alle laga først.', 'err');
-    return;
-  }
-  if (!confirm('Låse inn tabellen? Du kan låse opp att fram til fristen.')) return;
+function bonusRow(q, mine, editable, cm) {
+  const row     = mine.rows.find(r => r.q.key === q.key);
+  const pick    = row?.pick || null;
+  const graded  = row?.graded;
+  const correct = row?.correct;
 
-  flushSave();
-  await savePredictions();
-
-  if (!await setLocked(new Date().toISOString())) {
-    toast('Klarte ikkje å låse. Prøv igjen.', 'err');
-    return;
+  let field;
+  if (!editable) {
+    field = `<div class="bq-answer${graded ? (correct ? ' ok' : ' no') : ''}">
+      ${pick ? esc(pick.answer) : '<span class="muted">– ikkje svart –</span>'}
+      ${graded ? (correct ? '<span class="bq-mark ok">✓</span>' : '<span class="bq-mark no">✗</span>') : ''}
+    </div>`;
+    if (graded && !correct) {
+      const fasit = BonusScore.correctLabels(State.bonusCorrect, q.key);
+      if (fasit.length) field += `<div class="bq-fasit">Rett: ${fasit.map(esc).join(' / ')}</div>`;
+    }
+  } else if (q.kind === 'team') {
+    field = `<select class="form-input bq-input" data-bq="${esc(q.key)}">
+      <option value="">– vel lag –</option>
+      ${State.teams.map(t => `<option value="${esc(t.name)}"${
+        pick && pick.answer_norm === normAnswer(t.name) ? ' selected' : ''
+      }>${esc(t.name)}</option>`).join('')}
+    </select>`;
+  } else {
+    field = `<input type="text" class="form-input bq-input" data-bq="${esc(q.key)}"
+      value="${esc(pick?.answer || '')}" placeholder="Namn på spelar…"
+      autocomplete="off" autocapitalize="words" maxlength="60">`;
   }
-  toast('Tabellen er låst inn! 🔒');
-  renderTipping();
-  window.scrollTo(0, 0);
+
+  return `<div class="bq-row${graded ? (correct ? ' graded-ok' : ' graded-no') : ''}">
+    <div class="bq-head">
+      <span class="bq-label">${esc(q.label)}</span>
+      <span class="bq-pts">−${q.points} p</span>
+    </div>
+    ${q.hint ? `<div class="bq-hint">${esc(q.hint)}</div>` : ''}
+    ${field}
+  </div>`;
 }
 
-async function unlockPredictions() {
-  if (!canUnlock()) return;
-  if (!await setLocked(null)) {
-    toast('Klarte ikkje å låse opp. Prøv igjen.', 'err');
-    return;
+/** Held «x av y svart på» à jour utan å teikne heile sida på nytt. */
+function renderBonusCount() {
+  const el = document.getElementById('bonus-count');
+  if (!el) return;
+  const n = State.bonusPicks.filter(p =>
+    String(p.user_id) === String(State.user.id) && String(p.answer || '').trim()).length;
+  el.textContent = `${n} av ${State.bonusQ.length} spørsmål svart på.`;
+}
+
+/** Kva har resten av gjengen svart? Berre synleg etter fristen. */
+function bonusCrowdBlock(cm) {
+  const wrap = document.createElement('div');
+  const html = State.bonusQ.map(q => {
+    const groups = BonusScore.groupAnswers(State.bonusPicks, q.key, State.users);
+    if (groups.length === 0) return '';
+    const accepted = cm.get(q.key);
+    return `<div class="crowd-q">
+      <div class="crowd-label">${esc(q.label)}</div>
+      ${groups.map(g => `<div class="crowd-row${accepted?.has(g.norm) ? ' hit' : ''}">
+        <span class="crowd-ans">${esc(g.label)}</span>
+        <span class="crowd-who">${g.users.map(esc).join(', ')}</span>
+        <span class="crowd-n">${g.count}</span>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = `<div class="section-title mt-24">Kva har gjengen svart?</div>
+    <div class="card-list">${html}</div>`;
+  return wrap;
+}
+
+// ---- Autolagring av bonussvar ------------------------------
+const _bonusPending = new Map();   // q_key → svar som ventar på lagring
+let _bonusTimer = null;
+
+function setBonusAnswer(qKey, value, el) {
+  if (el) el.classList.toggle('has-value', !!value.trim());
+  schedBonusSave(qKey, value);
+}
+
+function schedBonusSave(qKey, value) {
+  _bonusPending.set(qKey, value);
+  setBonusStatus('saving');
+  clearTimeout(_bonusTimer);
+  _bonusTimer = setTimeout(saveBonus, 700);
+}
+
+function flushBonusSave() {
+  if (!_bonusTimer) return;
+  clearTimeout(_bonusTimer);
+  _bonusTimer = null;
+  saveBonus();
+}
+
+function setBonusStatus(kind) {
+  const el = document.getElementById('bonus-save');
+  if (!el) return;
+  el.className = 'save-status ' + (kind || '');
+  el.textContent = kind === 'saving' ? 'Lagrar…' : kind === 'ok' ? 'Lagra ✓' : kind === 'error' ? 'Ikkje lagra ✗' : '';
+  if (kind === 'ok') setTimeout(() => {
+    if (el.textContent === 'Lagra ✓') { el.textContent = ''; el.className = 'save-status'; }
+  }, 2200);
+}
+
+async function saveBonus() {
+  _bonusTimer = null;
+  if (!canEdit() || _bonusPending.size === 0) return;
+
+  const pending = [..._bonusPending.entries()];
+  _bonusPending.clear();
+
+  const upserts = [], deletes = [];
+  for (const [qKey, raw] of pending) {
+    const answer = String(raw || '').replace(/\s+/g, ' ').trim();
+    if (!answer) { deletes.push(qKey); continue; }
+
+    const q = State.bonusQ.find(x => x.key === qKey);
+    const team = q?.kind === 'team'
+      ? State.teams.find(t => normAnswer(t.name) === normAnswer(answer))
+      : null;
+
+    upserts.push({
+      user_id:     State.user.id,
+      q_key:       qKey,
+      answer,
+      answer_norm: normAnswer(answer),
+      team_id:     team ? team.id : null,
+      updated_at:  new Date().toISOString(),
+    });
   }
-  toast('Tabellen er open att – hugs å låse på nytt! 🔓');
-  renderTipping();
-  window.scrollTo(0, 0);
+
+  let failed = false;
+
+  if (upserts.length) {
+    const { error } = await db.from('pl_bonus_picks')
+      .upsert(upserts, { onConflict: 'user_id,q_key' });
+    if (error) { console.error(error); failed = true; }
+    else {
+      for (const r of upserts) {
+        State.bonusPicks = State.bonusPicks.filter(p =>
+          !(String(p.user_id) === String(r.user_id) && p.q_key === r.q_key));
+        State.bonusPicks.push({ ...r, id: null });
+      }
+    }
+  }
+
+  for (const qKey of deletes) {
+    const { error } = await db.from('pl_bonus_picks')
+      .delete().eq('user_id', State.user.id).eq('q_key', qKey);
+    if (error) { console.error(error); failed = true; }
+    else {
+      State.bonusPicks = State.bonusPicks.filter(p =>
+        !(String(p.user_id) === String(State.user.id) && p.q_key === qKey));
+    }
+  }
+
+  renderBonusCount();
+  setBonusStatus(failed ? 'error' : 'ok');
 }
 
 // ============================================================
 // SPELARAR
 // ============================================================
 function playerList() {
-  return Scoring.buildLeaderboard(State.users, State.preds, State.teams);
+  return Scoring.buildLeaderboard(State.users, State.preds, State.teams, bonusCtx());
 }
 
 function renderPlayers() {
@@ -662,12 +896,14 @@ function renderPlayers() {
 
   el.innerHTML = rows.map((r, i) => {
     const isMe = String(r.user.id) === String(State.user.id);
-    const meta = r.locked
-      ? `Låst ${esc(fmtDate(r.user.locked_at))}`
+    const meta = r.complete
+      ? (State.bonusOn
+          ? `Tabellen er klar · ${r.answered}/${State.bonusQ.length} bonussvar`
+          : 'Tabellen er klar')
       : `${r.tipped}/${State.teams.length} lag plasserte`;
     const right = hasRes
       ? `<div class="pc-pts">${r.total}<span>p</span></div>`
-      : (r.locked ? `<span class="lock-pill locked">Låst</span>` : `<span class="lock-pill">Open</span>`);
+      : `<span class="status-pill${r.complete ? ' done' : ''}">${r.complete ? 'Klar' : 'I gang'}</span>`;
     return `<button class="player-card${isMe ? ' me' : ''}" onclick="openPlayer(${i})">
       <span class="pc-avatar">${esc(initials(r.user.username))}</span>
       <span class="pc-main">
@@ -723,7 +959,10 @@ function renderPlayerDetail(slideDir = 0) {
       <div class="empty-lock"><i data-lucide="lock"></i></div>
       <p class="empty-title">Skjult til fristen</p>
       <p>Tabellen til ${esc(row.user.username)} blir synleg ${esc(fmtDayTime(deadline()))}.</p>
-      <p class="mt-8">${row.locked ? '✅ Har låst inn tabellen sin.' : `⏳ Har plassert ${row.tipped}/${State.teams.length} lag.`}</p>
+      <p class="mt-8">${row.complete
+        ? `✅ Har plassert alle ${State.teams.length} laga.`
+        : `⏳ Har plassert ${row.tipped}/${State.teams.length} lag.`}</p>
+      ${State.bonusOn ? `<p class="mt-8">🎯 ${row.answered}/${State.bonusQ.length} bonussvar levert.</p>` : ''}
     </div>`;
     if (window.lucide) lucide.createIcons();
     attachPlayerSwipe(body);
@@ -741,18 +980,19 @@ function renderPlayerDetail(slideDir = 0) {
 
   const actual = Scoring.actualMap(State.teams);
   const stats  = hasRes
-    ? `<div class="score-summary mb-16">
-         <div><span class="ss-val">${row.total}</span><span class="ss-lab">bompoeng</span></div>
+    ? `<div class="score-summary mb-16${row.bonus ? ' ss-3' : ''}">
+         <div><span class="ss-val">${row.table}</span><span class="ss-lab">bompoeng</span></div>
+         ${row.bonus ? `<div><span class="ss-val ss-minus">−${row.bonus}</span><span class="ss-lab">bonus</span></div>` : ''}
          <div><span class="ss-val">${row.exact}</span><span class="ss-lab">på blinken</span></div>
        </div>`
-    : `<div class="pd-meta">${row.locked
-         ? `Låst ${esc(fmtDateTime(row.user.locked_at))}`
-         : `Ikkje låst enno – ${row.tipped}/${State.teams.length} lag plasserte`}</div>`;
+    : `<div class="pd-meta">${row.complete
+         ? `Alle ${State.teams.length} laga er plasserte`
+         : `${row.tipped}/${State.teams.length} lag plasserte`}</div>`;
 
   body.innerHTML = stats + `<div class="pt-list">` + order.map((id, i) => {
     const t = teamById(id);
     return t ? predRow(t, i + 1, false, hasRes ? actual.get(t.id) ?? null : null) : '';
-  }).join('') + '</div>';
+  }).join('') + '</div>' + playerBonusBlock(row.user.id);
 
   if (slideDir) {
     body.classList.remove('slide-l', 'slide-r');
@@ -761,6 +1001,30 @@ function renderPlayerDetail(slideDir = 0) {
   }
   attachPlayerSwipe(body);
   if (window.lucide) lucide.createIcons();
+}
+
+/** Bonussvara til éin spelar, vist under tabellen hans. */
+function playerBonusBlock(userId) {
+  if (!State.bonusOn || State.bonusQ.length === 0) return '';
+
+  const cm = BonusScore.correctMap(State.bonusCorrect);
+  const s  = BonusScore.scoreUser(State.bonusQ, State.bonusPicks, cm, userId);
+  if (s.answered === 0) return '';
+
+  const rows = s.rows.filter(r => r.pick).map(r => `
+    <div class="bq-row compact${r.graded ? (r.correct ? ' graded-ok' : ' graded-no') : ''}">
+      <div class="bq-head">
+        <span class="bq-label">${esc(r.q.label)}</span>
+        <span class="bq-pts">−${r.q.points} p</span>
+      </div>
+      <div class="bq-answer${r.graded ? (r.correct ? ' ok' : ' no') : ''}">
+        ${esc(r.pick.answer)}
+        ${r.graded ? (r.correct ? '<span class="bq-mark ok">✓</span>' : '<span class="bq-mark no">✗</span>') : ''}
+      </div>
+    </div>`).join('');
+
+  return `<div class="section-title mt-24">Bonussvar</div>
+    <div class="bonus-list">${rows}</div>`;
 }
 
 // Sveip venstre/høgre mellom spelarar
@@ -949,8 +1213,10 @@ function logout() {
 // ============================================================
 // OPPSTART
 // ============================================================
+function flushAll() { flushSave(); flushBonusSave(); }
+
 document.addEventListener('DOMContentLoaded', init);
-window.addEventListener('pagehide', flushSave);
+window.addEventListener('pagehide', flushAll);
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') flushSave();
+  if (document.visibilityState === 'hidden') flushAll();
 });

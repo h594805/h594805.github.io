@@ -17,21 +17,26 @@ Når sesongen er ferdig får du poeng etter kor mange plassar du bomma med på k
 
 **Den med færrast poeng vinn.**
 
-Registrer deg med namn og ein 4-sifra PIN, dra laga på plass og lås inn tabellen.
-Du kan endre så mykje du vil heilt fram til fristen.
+I tillegg er det **15 bonusspørsmål** – kven tek gullstøvelen, kva lag får flest raude
+kort, kven blir sparka først. Kvart rette svar **trekk poeng frå totalen din**, så det
+er berre å prøve seg. Blanke svar kostar ingenting.
+
+Registrer deg med namn og ein 4-sifra PIN og dra laga på plass. Alt blir lagra
+automatisk, og du kan endre så mykje du vil heilt fram til fristen.
 
 ⏰ **Frist: fredag 21. august kl. 19:30**
 
 💰 Innsats: **[SUM] kr** – 1. plass tek 70 %, 2. plass 20 %, 3. plass 10 %.
 Sisteplass betaler dobbelt. 😏
 
-Ingen ser tabellen din før fristen går ut. Då opnar òg fakta-sida, der de kan sjå
-kven som har tippa kva – og kven som har turt å ta dei villaste sjansane.
+Ingen ser tabellen eller bonussvara dine før fristen går ut. Då opnar òg fakta-sida,
+der de kan sjå kven som har tippa kva – og kven som har turt å ta dei villaste sjansane.
 
 ---
 
 ## Kortversjon (om du vil ha noko som passar i ei SMS)
 
 🦐 PL-tipping 26/27 er i gang! Set dei 20 laga i den rekkjefølgja du trur tabellen
-endar på **rekegutta.no**. Færrast bomma plassar vinn. Innsats **[SUM] kr**,
+endar på **rekegutta.no**, og svar på bonusspørsmåla – rette svar trekk poeng.
+Færrast bomma plassar vinn. Innsats **[SUM] kr**,
 frist **fredag 21. aug kl. 19:30**. Lykke til!

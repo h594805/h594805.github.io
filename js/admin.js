@@ -11,6 +11,12 @@ const Admin = {
   preds:    [],
   settings: null,
   order:    [],   // team_id i faktisk tabellrekkjefølgje
+
+  // --- Bonusspørsmål ---
+  bonusOn:      false,
+  bonusQ:       [],
+  bonusPicks:   [],
+  bonusCorrect: [],
 };
 
 async function adminSha256(msg) {
@@ -92,19 +98,29 @@ async function adminInit() {
 // LASTING
 // ============================================================
 async function loadAdminData() {
-  const [t, u, p, s] = await Promise.all([
+  const [t, u, p, s, bq, bp, bc] = await Promise.all([
     adminDb.from('pl_teams').select('*').order('sort_order').order('id'),
     adminDb.from('pl_users').select('*').order('id'),
     adminDb.from('pl_predictions').select('*'),
     adminDb.from('pl_settings').select('*').eq('id', 1).maybeSingle(),
+    adminDb.from('pl_bonus').select('*').order('sort_order').order('key'),
+    adminDb.from('pl_bonus_picks').select('*'),
+    adminDb.from('pl_bonus_correct').select('*'),
   ]);
   Admin.teams    = t.data || [];
   Admin.users    = u.data || [];
   Admin.preds    = p.data || [];
   Admin.settings = s.data || null;
 
+  // Manglar tabellane, er sql/bonus.sql ikkje køyrd enno
+  Admin.bonusOn      = !bq.error;
+  Admin.bonusQ       = bq.data || [];
+  Admin.bonusPicks   = bp.data || [];
+  Admin.bonusCorrect = bc.data || [];
+
   buildActualOrder();
   renderFasit();
+  renderBonusAdmin();
   renderUsers();
   renderTeams();
   renderSettings();
@@ -194,6 +210,111 @@ async function saveFinished() {
 }
 
 // ============================================================
+// BONUS – fasit på prisar og ville tips
+// ============================================================
+function renderBonusAdmin() {
+  const el = document.getElementById('admin-bonus-list');
+  const statusEl = document.getElementById('bonus-admin-status');
+
+  if (!Admin.bonusOn) {
+    el.innerHTML = `<div class="alert alert-warning">
+      Bonustabellane finst ikkje i databasen enno. Køyr <code>sql/bonus.sql</code>
+      i Supabase SQL Editor, og last sida på nytt.</div>`;
+    statusEl.textContent = '';
+    return;
+  }
+  if (Admin.bonusQ.length === 0) {
+    el.innerHTML = `<div class="empty-state"><p class="empty-title">Ingen bonusspørsmål</p></div>`;
+    statusEl.textContent = '';
+    return;
+  }
+
+  el.innerHTML = Admin.bonusQ.map(q => {
+    const groups   = BonusScore.groupAnswers(Admin.bonusPicks, q.key, Admin.users);
+    const accepted = new Set(Admin.bonusCorrect.filter(r => r.q_key === q.key).map(r => r.answer_norm));
+    // Rette svar som ingen gjetta – lagde til for hand
+    const extra = [...accepted].filter(n => !groups.some(g => g.norm === n));
+
+    const opt = (norm, label, who, count, on) => `
+      <label class="ab-opt${on ? ' on' : ''}">
+        <input type="checkbox" data-q="${aEsc(q.key)}" data-norm="${aEsc(norm)}"
+               data-label="${aEsc(label)}"${on ? ' checked' : ''}>
+        <span class="ab-ans">${aEsc(label)}</span>
+        <span class="ab-who">${who}</span>
+        <span class="ab-n">${count}</span>
+      </label>`;
+
+    return `<div class="ab-q">
+      <div class="ab-head">
+        <span class="ab-label">${aEsc(q.label)}</span>
+        <span class="ab-pts">−${q.points} p</span>
+      </div>
+      ${q.hint ? `<div class="ab-hint">${aEsc(q.hint)}</div>` : ''}
+      ${groups.length === 0 && extra.length === 0
+        ? `<div class="ab-empty">Ingen har svart på dette enno.</div>` : ''}
+      ${groups.map(g => opt(g.norm, g.label, g.users.map(aEsc).join(', '), g.count, accepted.has(g.norm))).join('')}
+      ${extra.map(n => {
+        const r = Admin.bonusCorrect.find(x => x.q_key === q.key && x.answer_norm === n);
+        return opt(n, r?.label || n, '<span class="muted">ingen gjetta dette</span>', 0, true);
+      }).join('')}
+      <div class="ab-add">
+        <input class="at-input" data-add="${aEsc(q.key)}" placeholder="Rett svar som ingen gjetta…">
+        <button class="btn btn-outline btn-sm" data-addbtn="${aEsc(q.key)}">Legg til</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('input[type=checkbox][data-q]').forEach(cb => {
+    cb.addEventListener('change', () =>
+      toggleBonusCorrect(cb.dataset.q, cb.dataset.norm, cb.dataset.label));
+  });
+  el.querySelectorAll('[data-addbtn]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key   = btn.dataset.addbtn;
+      const input = el.querySelector(`input[data-add="${key}"]`);
+      addBonusCorrect(key, input.value);
+      input.value = '';
+    });
+  });
+
+  const done = new Set(Admin.bonusCorrect.map(r => r.q_key)).size;
+  statusEl.textContent = done
+    ? `${done}/${Admin.bonusQ.length} spørsmål har fasit`
+    : 'Ingen fasit lagt inn enno';
+}
+
+async function toggleBonusCorrect(qKey, norm, label) {
+  const on = Admin.bonusCorrect.some(r => r.q_key === qKey && r.answer_norm === norm);
+
+  if (on) {
+    const { error } = await adminDb.from('pl_bonus_correct')
+      .delete().eq('q_key', qKey).eq('answer_norm', norm);
+    if (error) { aToast('Klarte ikkje å fjerne svaret.', 'err'); renderBonusAdmin(); return; }
+    Admin.bonusCorrect = Admin.bonusCorrect.filter(r => !(r.q_key === qKey && r.answer_norm === norm));
+    aToast('Svaret tel ikkje lenger');
+  } else {
+    const { data, error } = await adminDb.from('pl_bonus_correct')
+      .insert([{ q_key: qKey, answer_norm: norm, label }]).select().single();
+    if (error) { aToast('Klarte ikkje å lagre svaret.', 'err'); renderBonusAdmin(); return; }
+    Admin.bonusCorrect.push(data);
+    aToast('Svaret er godkjent ✓');
+  }
+  renderBonusAdmin();
+}
+
+async function addBonusCorrect(qKey, raw) {
+  const label = String(raw || '').trim();
+  if (!label) return;
+
+  const norm = normAnswer(label);
+  if (Admin.bonusCorrect.some(r => r.q_key === qKey && r.answer_norm === norm)) {
+    aToast('Det svaret er allereie godkjent.', 'err');
+    return;
+  }
+  await toggleBonusCorrect(qKey, norm, label);
+}
+
+// ============================================================
 // SPELARAR
 // ============================================================
 function renderUsers() {
@@ -204,36 +325,32 @@ function renderUsers() {
   }
   el.innerHTML = Admin.users.map(u => {
     const count = Admin.preds.filter(p => String(p.user_id) === String(u.id)).length;
+    const bonus = Admin.bonusPicks.filter(p => String(p.user_id) === String(u.id)).length;
+    const meta  = `${count}/${Admin.teams.length} lag` +
+      (Admin.bonusOn ? ` · ${bonus}/${Admin.bonusQ.length} bonussvar` : '') +
+      (u.created_at ? ` · med sidan ${aDate(u.created_at)}` : '');
+
     return `<div class="admin-user-row">
       <span class="pc-avatar">${aEsc((u.username || '?').charAt(0).toUpperCase())}</span>
       <div class="au-main">
         <div class="au-name">${aEsc(u.username)}</div>
-        <div class="au-meta">${count}/${Admin.teams.length} lag ·
-          ${u.locked_at ? 'låst ' + aDate(u.locked_at) : 'ikkje låst'}</div>
+        <div class="au-meta">${meta}</div>
       </div>
-      ${u.locked_at ? `<button class="btn btn-outline btn-sm" onclick="unlockUser(${u.id})">Lås opp</button>` : ''}
       <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">Slett</button>
     </div>`;
   }).join('');
 }
 
-async function unlockUser(id) {
-  const { error } = await adminDb.from('pl_users').update({ locked_at: null }).eq('id', id);
-  if (error) { aToast('Klarte ikkje å låse opp.', 'err'); return; }
-  const u = Admin.users.find(u => u.id === id);
-  if (u) u.locked_at = null;
-  renderUsers();
-  aToast('Låst opp – spelaren kan endre igjen');
-}
-
 async function deleteUser(id) {
   const name = Admin.users.find(u => u.id === id)?.username || 'spelaren';
-  if (!confirm(`Slette ${name}? Spådommane forsvinn òg.`)) return;
+  if (!confirm(`Slette ${name}? Både tabellen og bonussvara forsvinn òg.`)) return;
   const { error } = await adminDb.from('pl_users').delete().eq('id', id);
   if (error) { aToast('Klarte ikkje å slette.', 'err'); return; }
-  Admin.users = Admin.users.filter(u => u.id !== id);
-  Admin.preds = Admin.preds.filter(p => String(p.user_id) !== String(id));
+  Admin.users      = Admin.users.filter(u => u.id !== id);
+  Admin.preds      = Admin.preds.filter(p => String(p.user_id) !== String(id));
+  Admin.bonusPicks = Admin.bonusPicks.filter(p => String(p.user_id) !== String(id));
   renderUsers();
+  renderBonusAdmin();
   aToast('Spelaren er sletta');
 }
 

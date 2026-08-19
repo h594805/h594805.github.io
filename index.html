@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://media.api-sports.io" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/style.css?v=7">
 </head>
 <body>
 
@@ -159,8 +159,8 @@
         <div class="leaderboard">
           <div class="lb-header lb-pl">
             <div></div><div>Namn</div>
-            <div class="ta-c">Blink</div>
-            <div class="ta-c">Poeng</div>
+            <div class="ta-c" id="lb-h3">Blink</div>
+            <div class="ta-c" id="lb-h4">Poeng</div>
           </div>
           <div id="dash-leaderboard"></div>
         </div>
@@ -184,6 +184,11 @@
               <div class="example-row"><span>Everton tippa 9. – enda 16.</span><span class="ex-pts">7 p</span></div>
               <div class="example-row"><span>Liverpool tippa 3. – enda 3.</span><span class="ex-pts ex-zero">0 p</span></div>
             </div>
+            <p class="scoring-note mt-16 pt-10 bt">
+              <strong>Bonusspørsmål:</strong> i tillegg gjettar du på prisar og ville tips –
+              toppskårar, flest raude kort og liknande. Kvart rette svar
+              <strong>trekk poeng frå totalen din</strong>, så det er berre å prøve seg.
+            </p>
             <p class="scoring-note mt-16 pt-10 bt">
               <strong>Premiering:</strong><br>
               1. plass – 70%<br>
@@ -209,6 +214,18 @@
         </div>
         <div class="pt-list" id="tip-list"></div>
         <div id="tip-actions"></div>
+      </div>
+    </section>
+
+    <!-- === BONUS === -->
+    <section class="app-section hidden" id="section-bonus">
+      <div class="container pad-top">
+        <div id="bonus-banner"></div>
+        <div class="row-between mb-10">
+          <div class="section-title mb-0" id="bonus-title">Bonusspørsmål</div>
+          <span class="save-status" id="bonus-save"></span>
+        </div>
+        <div id="bonus-body"></div>
       </div>
     </section>
 
@@ -255,6 +272,9 @@
     <button class="nav-btn" data-page="tipping">
       <i data-lucide="list-ordered"></i><span>Spå</span>
     </button>
+    <button class="nav-btn" data-page="bonus" id="nav-bonus">
+      <i data-lucide="sparkles"></i><span>Bonus</span>
+    </button>
     <button class="nav-btn" data-page="players">
       <i data-lucide="users"></i><span>Spelarar</span>
     </button>
@@ -268,9 +288,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<script src="js/config.js?v=6"></script>
-<script src="js/scoring.js?v=6"></script>
-<script src="js/reorder.js?v=6"></script>
-<script src="js/app.js?v=6"></script>
+<script src="js/config.js?v=7"></script>
+<script src="js/scoring.js?v=7"></script>
+<script src="js/reorder.js?v=7"></script>
+<script src="js/app.js?v=7"></script>
 </body>
 </html>

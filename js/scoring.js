@@ -73,6 +73,40 @@ const BonusScore = {
     }
     return { deduction, hits, answered, rows };
   },
+
+  /** Høgast moglege trekk – alle bonusspørsmål rett. */
+  maxDeduction(questions) {
+    return (questions || []).reduce((sum, q) => sum + q.points, 0);
+  },
+
+  /**
+   * Grupperer svara på eitt spørsmål etter normalisert form, slik at
+   * admin ser «Haaland (4)» i staden for fire like rader.
+   * → [{ norm, label, users: [namn], count }] – flest først.
+   */
+  groupAnswers(picks, qKey, users) {
+    const nameOf = new Map((users || []).map(u => [String(u.id), u.username]));
+    const groups = new Map();
+
+    for (const p of picks || []) {
+      if (p.q_key !== qKey) continue;
+      if (!groups.has(p.answer_norm)) {
+        groups.set(p.answer_norm, { norm: p.answer_norm, label: p.answer, users: [] });
+      }
+      groups.get(p.answer_norm).users.push(nameOf.get(String(p.user_id)) || '?');
+    }
+
+    return [...groups.values()]
+      .map(g => ({ ...g, count: g.users.length }))
+      .sort((a, b) => (b.count - a.count) || a.label.localeCompare(b.label, 'no'));
+  },
+
+  /** Dei godkjende svara på eitt spørsmål, som lesbar liste. */
+  correctLabels(correctRows, qKey) {
+    return (correctRows || [])
+      .filter(r => r.q_key === qKey)
+      .map(r => r.label || r.answer_norm);
+  },
 };
 
 
@@ -135,23 +169,36 @@ const Scoring = {
     return { total, exact, scored, rows };
   },
 
-  /** Tabellen – sortert med færrast poeng øvst. */
-  buildLeaderboard(users, preds, teams) {
+  /**
+   * Tabellen – sortert med færrast poeng øvst.
+   * @param bonus valfritt { questions, picks, correctMap } – rette bonussvar
+   *              blir trekte frå bompoenga.
+   */
+  buildLeaderboard(users, preds, teams, bonus = null) {
     const rows = users.map(u => {
       const s = this.scoreUser(preds, u.id, teams);
+      const b = bonus
+        ? BonusScore.scoreUser(bonus.questions, bonus.picks, bonus.correctMap, u.id)
+        : { deduction: 0, hits: 0, answered: 0 };
+      const tipped = preds.filter(p => String(p.user_id) === String(u.id)).length;
+
       return {
-        user:   u,
-        total:  s.total,
-        exact:  s.exact,
-        scored: s.scored,
-        tipped: preds.filter(p => String(p.user_id) === String(u.id)).length,
-        locked: !!u.locked_at,
+        user:     u,
+        table:    s.total,            // berre bompoeng frå tabellen
+        bonus:    b.deduction,        // trekk for rette bonussvar
+        total:    s.total - b.deduction,
+        exact:    s.exact,
+        scored:   s.scored,
+        tipped,
+        hits:     b.hits,
+        answered: b.answered,
+        complete: teams.length > 0 && tipped === teams.length,
       };
     });
 
     if (!this.hasResults(teams)) {
-      // Ingen resultat enno – vis alfabetisk, låste øvst
-      rows.sort((a, b) => (b.locked - a.locked) ||
+      // Ingen resultat enno – ferdige tabellar øvst, elles alfabetisk
+      rows.sort((a, b) => (b.complete - a.complete) ||
         a.user.username.localeCompare(b.user.username, 'no'));
     } else {
       rows.sort((a, b) => (a.total - b.total) || (b.exact - a.exact) ||

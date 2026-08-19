@@ -514,7 +514,7 @@ select.form-input { cursor: pointer; }
 .lb-pts.rank-1, .lb-pts.rank-2, .lb-pts.rank-3, .lb-pts.rank-last { font-weight: 900; font-size: 1.35rem; }
 .lb-cell { text-align: center; color: var(--text-muted); font-size: 0.85rem; }
 
-.lock-pill {
+.status-pill {
   display: inline-block;
   padding: 3px 9px;
   border-radius: 100px;
@@ -524,7 +524,7 @@ select.form-input { cursor: pointer; }
   color: var(--text-muted);
   white-space: nowrap;
 }
-.lock-pill.locked { background: var(--green-dim); color: var(--green); }
+.status-pill.done { background: var(--green-dim); color: var(--green); }
 
 /* ================================================================
    REGLAR
@@ -1249,3 +1249,186 @@ details[open] .scoring-toggle-hint { display: none; }
 }
 .admin-team-row:last-child { border-bottom: none; }
 .at-name { flex: 1; min-width: 0; font-weight: 600; font-size: 0.88rem; }
+
+/* ================================================================
+   BONUSSPØRSMÅL
+   ================================================================ */
+
+.bonus-list {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.bq-row {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.bq-row:last-child { border-bottom: none; }
+.bq-row.graded-ok { background: var(--green-dim); }
+.bq-row.graded-no { background: var(--red-dim); }
+
+.bq-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+.bq-label { font-weight: 700; font-size: 0.92rem; }
+.bq-pts {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--gold);
+  background: var(--gold-dim);
+  padding: 2px 8px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+.bq-hint { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
+
+.bq-input { margin-top: 6px; }
+
+.bq-answer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.bq-answer.ok { color: var(--green); }
+.bq-answer.no { color: var(--red); }
+.bq-mark { margin-left: auto; font-weight: 700; }
+.bq-mark.ok { color: var(--green); }
+.bq-mark.no { color: var(--red); }
+.bq-fasit { margin-top: 4px; font-size: 0.75rem; color: var(--text-muted); }
+
+.bonus-breakdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  color: var(--text-2);
+}
+.bonus-breakdown .bb-minus { color: var(--green); font-weight: 700; }
+.bonus-breakdown .bb-eq    { font-weight: 700; color: var(--text); }
+
+.score-summary.ss-3 { grid-template-columns: repeat(3, 1fr); }
+.ss-minus { color: var(--green); }
+
+/* ---- Kva har gjengen svart ---- */
+.crowd-q { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.crowd-q:last-child { border-bottom: none; }
+.crowd-label { font-weight: 700; font-size: 0.84rem; margin-bottom: 6px; }
+.crowd-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.8rem;
+}
+.crowd-row.hit .crowd-ans { color: var(--green); }
+.crowd-ans { font-weight: 600; flex-shrink: 0; }
+.crowd-who {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crowd-n {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+}
+
+/* ================================================================
+   ADMIN – BONUSFASIT
+   ================================================================ */
+
+.ab-q {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.ab-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ab-label { font-weight: 700; font-size: 0.92rem; }
+.ab-pts {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--gold);
+  background: var(--gold-dim);
+  padding: 2px 8px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+.ab-hint  { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+.ab-empty { font-size: 0.78rem; color: var(--text-muted); margin-top: 10px; font-style: italic; }
+
+.ab-opt {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+  cursor: pointer;
+  font-size: 0.84rem;
+}
+.ab-opt.on { background: var(--green-dim); border-color: var(--green); }
+.ab-opt input {
+  width: 20px; height: 20px;
+  accent-color: var(--green);
+  flex-shrink: 0;
+}
+.ab-ans { font-weight: 700; flex-shrink: 0; }
+.ab-who {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ab-n {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 18px;
+  text-align: right;
+}
+
+.ab-add {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.ab-add .at-input { flex: 1; min-width: 0; }
+.ab-add .btn { flex-shrink: 0; }
