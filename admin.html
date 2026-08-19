@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/style.css?v=7">
 </head>
 <body>
 
@@ -47,6 +47,7 @@
 
     <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto">
       <button class="admin-tab active" data-section="fasit">Fasit</button>
+      <button class="admin-tab" data-section="bonus">Bonus</button>
       <button class="admin-tab" data-section="spelarar">Spelarar</button>
       <button class="admin-tab" data-section="lag">Lag</button>
       <button class="admin-tab" data-section="innstillingar">Innstillingar</button>
@@ -72,11 +73,25 @@
       <button class="btn btn-danger btn-full mt-16" onclick="clearActualTable()">Nullstill fasit</button>
     </div>
 
+    <!-- === BONUS === -->
+    <div id="admin-bonus" class="admin-section hidden">
+      <div class="alert alert-info mb-16">
+        Hak av for kva svar som er rette. Du ser alle svara spelarane har levert, gruppert –
+        kryssar du av på eitt, får alle som skreiv det same frådraget. Er det rette svaret
+        ikkje med i lista fordi ingen gjetta det, kan du leggje det inn sjølv.
+      </div>
+      <div class="row-between mb-10">
+        <div class="section-title mb-0">Fasit på bonusspørsmåla</div>
+        <span class="muted tiny" id="bonus-admin-status"></span>
+      </div>
+      <div id="admin-bonus-list"></div>
+    </div>
+
     <!-- === SPELARAR === -->
     <div id="admin-spelarar" class="admin-section hidden">
       <div class="alert alert-info mb-16">
-        Spelarane kan låse opp tabellen sin sjølv fram til fristen. Etter fristen er det berre du
-        som kan opne opp att.
+        Alle kan endre tabellen og bonussvara sine heilt fram til fristen – det finst ingen
+        lås-inn-knapp. Etter fristen er alt stengt.
       </div>
       <div class="section-title">Registrerte spelarar</div>
       <div class="card-list" id="admin-users"></div>
@@ -130,9 +145,9 @@
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js?v=6"></script>
-<script src="js/scoring.js?v=6"></script>
-<script src="js/reorder.js?v=6"></script>
-<script src="js/admin.js?v=6"></script>
+<script src="js/config.js?v=7"></script>
+<script src="js/scoring.js?v=7"></script>
+<script src="js/reorder.js?v=7"></script>
+<script src="js/admin.js?v=7"></script>
 </body>
 </html>
